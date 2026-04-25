@@ -138,6 +138,12 @@ header h1 {
   max-width: 142px;
 }
 
+#walletLabel {
+  width: 136px;
+  min-width: 136px;
+  max-width: 136px;
+}
+
 .field {
   display: flex;
   flex-direction: column;
