@@ -43,9 +43,11 @@ type SortDirection = 'asc' | 'desc';
 
 const mintInput = document.getElementById('mint') as HTMLInputElement;
 const searchInputLabel = document.getElementById('searchInputLabel') as HTMLElement;
-const searchModeLock = document.getElementById('searchModeLock') as HTMLButtonElement;
 const searchModeWallet = document.getElementById('searchModeWallet') as HTMLInputElement;
 const searchModeSwitchLabel = document.getElementById('searchModeSwitchLabel') as HTMLElement;
+const fetchActions = document.getElementById('fetchActions') as HTMLElement;
+const walletActionsTarget = document.getElementById('walletActionsTarget') as HTMLElement;
+const tokenActionsTarget = document.getElementById('tokenActionsTarget') as HTMLElement;
 const fetchAllBtn = document.getElementById('fetchAll') as HTMLButtonElement;
 const loadingIndicator = document.getElementById('loadingIndicator') as HTMLElement;
 const tokenOnlyControls = document.getElementById('tokenOnlyControls') as HTMLElement;
@@ -71,6 +73,7 @@ const tokenSymbol = document.getElementById('tokenSymbol') as HTMLElement;
 const tokenName = document.getElementById('tokenName') as HTMLElement;
 const tokenStats = document.getElementById('tokenStats') as HTMLElement;
 
+const topTradersSection = document.getElementById('topTradersSection') as HTMLElement;
 const topTradersLoading = document.getElementById('topTradersLoading') as HTMLElement;
 const topTradersError = document.getElementById('topTradersError') as HTMLElement;
 const topTradersMeta = document.getElementById('topTradersMeta') as HTMLElement;
@@ -82,7 +85,6 @@ const tokenTopPnlError = document.getElementById('tokenTopPnlError') as HTMLElem
 const tokenTopPnlMeta = document.getElementById('tokenTopPnlMeta') as HTMLElement;
 const tokenTopPnlBody = document.getElementById('tokenTopPnlBody') as HTMLElement;
 
-const SEARCH_MODE_LOCKED_KEY = 'topTradersSearchModeLocked';
 const SEARCH_MODE_KEY = 'topTradersSearchMode';
 const MAX_FETCH_RETRIES = 5;
 const FETCH_RETRY_DELAY_MS = 2000;
@@ -96,24 +98,12 @@ function setSearchMode(mode: SearchMode): void {
   localStorage.setItem(SEARCH_MODE_KEY, mode);
 }
 
-function isSearchModeLocked(): boolean {
-  return localStorage.getItem(SEARCH_MODE_LOCKED_KEY) !== 'false';
-}
-
-function setSearchModeLocked(locked: boolean): void {
-  localStorage.setItem(SEARCH_MODE_LOCKED_KEY, locked ? 'true' : 'false');
-}
-
 function applySearchModeUI(): void {
   const mode = getSearchMode();
   const tokenMode = mode === 'token';
-  const locked = isSearchModeLocked();
   searchModeWallet.checked = !tokenMode;
-  searchModeLock.setAttribute('aria-pressed', String(locked));
-  searchModeSwitchLabel.classList.toggle('trades-fetch-switch--locked', locked);
-  searchModeSwitchLabel.title = locked
-    ? 'Locked: mode is fixed. Unlock to switch token/wallet.'
-    : 'Switch between token and wallet search.';
+  searchModeSwitchLabel.classList.remove('trades-fetch-switch--locked');
+  searchModeSwitchLabel.title = 'Switch between token and wallet search.';
   searchInputLabel.innerHTML = tokenMode
     ? '<span class="label-icon field-icon icon-tag" aria-hidden="true"></span>Token mint address'
     : '<span class="label-icon field-icon icon-user" aria-hidden="true"></span>Wallet address or name (ilikeFilter)';
@@ -122,8 +112,19 @@ function applySearchModeUI(): void {
     : 'e.g. 7xKXtg2CW4fXh1vM4dfV2Qx9tqGk8hL38Gy4X9Kq8p7y';
   fetchAllBtn.textContent = tokenMode ? 'Load token analytics' : 'Search top traders';
   tokenSection.hidden = !tokenMode;
+  topTradersSection.hidden = tokenMode;
   tokenTopPnlSection.hidden = !tokenMode;
   tokenOnlyControls.hidden = !tokenMode;
+  if (tokenMode) tokenActionsTarget.appendChild(fetchActions);
+  else walletActionsTarget.appendChild(fetchActions);
+  document
+    .querySelectorAll<HTMLElement>('.wallet-only-control, .wallet-only-row')
+    .forEach((el) => {
+      el.hidden = tokenMode;
+    });
+  document.querySelectorAll<HTMLElement>('.token-only-control').forEach((el) => {
+    el.hidden = !tokenMode;
+  });
 }
 
 function truncateAddress(addr: string | undefined): string {
@@ -393,7 +394,7 @@ async function loadData(): Promise<void> {
   fetchAllBtn.disabled = true;
   loadingIndicator.hidden = false;
   tokenSectionLoading.hidden = !tokenMode;
-  topTradersLoading.hidden = false;
+  topTradersLoading.hidden = tokenMode;
   tokenTopPnlLoading.hidden = !tokenMode;
 
   const walletTopTraderParams = buildWalletTopTraderParams(mode, query);
@@ -407,16 +408,6 @@ async function loadData(): Promise<void> {
       } else {
         showSectionError(tokenSectionError, `Failed (${tokenRes.status})`);
       }
-    }
-
-    const topRes = await fetchWithRetry(`/api/wallets/top-traders?${walletTopTraderParams.toString()}`);
-    if (topRes.ok) {
-      renderTopTraders(await topRes.json() as { data?: TopTraderRow[] }, mode, query, walletTopTraderParams);
-    } else {
-      showSectionError(topTradersError, `Failed (${topRes.status})`);
-    }
-
-    if (tokenMode) {
       const tokenTopPnlRes = await fetchWithRetry(`/api/tokens/${encodeURIComponent(query)}/top-pnl-traders?${tokenTopPnlParams.toString()}`);
       if (tokenTopPnlRes.ok) {
         renderTokenTopPnlTraders(await tokenTopPnlRes.json() as { data?: TokenTopPnlTraderRow[] }, query, tokenTopPnlParams);
@@ -424,11 +415,15 @@ async function loadData(): Promise<void> {
         showSectionError(tokenTopPnlError, `Failed (${tokenTopPnlRes.status})`);
       }
     } else {
-      tokenTopPnlMeta.textContent = 'Token-only endpoint hidden in wallet mode.';
-      tokenTopPnlBody.innerHTML = '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';
+      const topRes = await fetchWithRetry(`/api/wallets/top-traders?${walletTopTraderParams.toString()}`);
+      if (topRes.ok) {
+        renderTopTraders(await topRes.json() as { data?: TopTraderRow[] }, mode, query, walletTopTraderParams);
+      } else {
+        showSectionError(topTradersError, `Failed (${topRes.status})`);
+      }
     }
   } catch {
-    showSectionError(topTradersError, 'Failed');
+    showSectionError(tokenMode ? tokenTopPnlError : topTradersError, 'Failed');
   } finally {
     fetchAllBtn.disabled = false;
     loadingIndicator.hidden = true;
@@ -438,16 +433,7 @@ async function loadData(): Promise<void> {
   }
 }
 
-searchModeLock.addEventListener('click', () => {
-  setSearchModeLocked(!isSearchModeLocked());
-  applySearchModeUI();
-});
-
 searchModeWallet.addEventListener('change', () => {
-  if (isSearchModeLocked()) {
-    searchModeWallet.checked = getSearchMode() === 'wallet';
-    return;
-  }
   setSearchMode(searchModeWallet.checked ? 'wallet' : 'token');
   applySearchModeUI();
 });

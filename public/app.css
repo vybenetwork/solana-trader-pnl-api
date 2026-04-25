@@ -2,6 +2,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   margin: 0;
@@ -98,15 +102,40 @@ header h1 {
   min-width: 180px;
 }
 
+#walletResolution,
+#tokenTopPnlResolution {
+  width: 90px;
+  min-width: 90px;
+  max-width: 90px;
+}
+
 #walletPage,
 #tokenTopPnlPage {
-  min-width: 100px;
-  max-width: 100px;
+  width: 82px !important;
+  min-width: 82px !important;
+  max-width: 82px !important;
+  box-sizing: border-box;
 }
 
 #walletLimit,
 #tokenTopPnlLimit {
-  min-width: 120px;
+  width: 102px;
+  min-width: 102px;
+  max-width: 102px;
+}
+
+#walletSortField,
+#tokenTopPnlSortField {
+  width: 172px;
+  min-width: 172px;
+  max-width: 172px;
+}
+
+#walletSortDirection,
+#tokenTopPnlSortDirection {
+  width: 142px;
+  min-width: 142px;
+  max-width: 142px;
 }
 
 .field {
@@ -234,6 +263,23 @@ header h1 {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+}
+
+.inline-row-actions {
+  margin-top: 0;
+  align-self: flex-end;
+}
+
+.inline-actions-target {
+  display: flex;
+  align-items: flex-end;
+  flex: 0 0 auto;
+}
+
+.actions-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .loading {

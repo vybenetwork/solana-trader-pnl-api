@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Solana Top Traders Wallets & Tokens</title>
-  <link rel="stylesheet" href="app.css?v=6" />
+  <link rel="stylesheet" href="app.css?v=7" />
 </head>
 <body>
   <div class="container">
@@ -28,10 +28,6 @@
             <span class="field-switch-title">Top traders mode</span>
           </div>
           <div class="trades-fetch-control">
-            <button type="button" class="trades-fetch-lock" id="searchModeLock" title="Lock current mode selection" aria-pressed="true" aria-label="Lock mode switch">
-              <svg class="trades-fetch-lock-icon trades-fetch-lock-icon--locked" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <svg class="trades-fetch-lock-icon trades-fetch-lock-icon--unlocked" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z"/><path d="M7 11V7a5 5 0 0 1 5.5-5 5 5 0 0 1 4.5 3"/></svg>
-            </button>
             <label class="trades-fetch-switch" id="searchModeSwitchLabel" title="Token or Wallet search mode">
               <input type="checkbox" id="searchModeWallet" class="trades-fetch-switch-input" />
               <span class="trades-fetch-switch-track">
@@ -53,41 +49,40 @@
           </div>
         </div>
 
-        <div class="field wallet-resolution-field">
+        <div class="field wallet-resolution-field resolution-inline-field wallet-only-control">
           <label for="walletResolution">
             <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
-            Wallet traders resolution
+            Resolution
           </label>
           <div class="field-control">
             <span class="field-icon icon-grid" aria-hidden="true"></span>
             <select id="walletResolution">
-              <option value="1d" selected>1d</option>
+              <option value="1d">1d</option>
               <option value="7d">7d</option>
-              <option value="30d">30d</option>
+              <option value="30d" selected>30d</option>
             </select>
           </div>
         </div>
-      </div>
 
-      <div class="candles-mint-resolution-row">
-        <div class="field">
-          <label for="walletLabel">
-            <span class="label-icon field-icon icon-user" aria-hidden="true"></span>
-            Wallet traders label
+        <div class="field wallet-resolution-field resolution-inline-field token-only-control">
+          <label for="tokenTopPnlResolution">
+            <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
+            Resolution
           </label>
           <div class="field-control">
-            <span class="field-icon icon-user" aria-hidden="true"></span>
-            <select id="walletLabel">
-              <option value="all" selected>All</option>
-              <option value="kol">Kol</option>
+            <span class="field-icon icon-grid" aria-hidden="true"></span>
+            <select id="tokenTopPnlResolution">
+              <option value="1d">1d</option>
+              <option value="7d">7d</option>
+              <option value="30d" selected>30d</option>
             </select>
           </div>
         </div>
 
-        <div class="field">
+        <div class="field wallet-only-control">
           <label for="walletSortField">
             <span class="label-icon field-icon icon-sort" aria-hidden="true"></span>
-            Wallet traders sort field
+            Sort Field
           </label>
           <div class="field-control">
             <span class="field-icon icon-sort" aria-hidden="true"></span>
@@ -102,68 +97,10 @@
           </div>
         </div>
 
-        <div class="field">
-          <label for="walletSortDirection">
-            <span class="label-icon field-icon icon-sort" aria-hidden="true"></span>
-            Wallet traders sort direction
-          </label>
-          <div class="field-control">
-            <span class="field-icon icon-sort" aria-hidden="true"></span>
-            <select id="walletSortDirection">
-              <option value="desc" selected>sortByDesc</option>
-              <option value="asc">sortByAsc</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="walletPage">
-            <span class="label-icon field-icon icon-pages" aria-hidden="true"></span>
-            Wallet traders page
-          </label>
-          <div class="field-control">
-            <span class="field-icon icon-pages" aria-hidden="true"></span>
-            <input type="number" id="walletPage" min="0" step="1" value="0" />
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="walletLimit">
-            <span class="label-icon field-icon icon-hash" aria-hidden="true"></span>
-            Wallet traders limit
-          </label>
-          <div class="field-control">
-            <span class="field-icon icon-hash" aria-hidden="true"></span>
-            <select id="walletLimit">
-              <option value="100">100</option>
-              <option value="250">250</option>
-              <option value="500">500</option>
-              <option value="1000" selected>1000</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="candles-mint-resolution-row token-only-controls" id="tokenOnlyControls">
-        <div class="field">
-          <label for="tokenTopPnlResolution">
-            <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
-            Token top PnL resolution
-          </label>
-          <div class="field-control">
-            <span class="field-icon icon-grid" aria-hidden="true"></span>
-            <select id="tokenTopPnlResolution">
-              <option value="1d" selected>1d</option>
-              <option value="7d">7d</option>
-              <option value="30d">30d</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field">
+        <div class="field token-only-control">
           <label for="tokenTopPnlSortField">
             <span class="label-icon field-icon icon-sort" aria-hidden="true"></span>
-            Token top PnL sort field
+            Sort Field
           </label>
           <div class="field-control">
             <span class="field-icon icon-sort" aria-hidden="true"></span>
@@ -175,11 +112,74 @@
             </select>
           </div>
         </div>
+      </div>
+
+      <div class="candles-mint-resolution-row wallet-only-row" id="walletControlsRow">
+        <div class="field">
+          <label for="walletLabel">
+            <span class="label-icon field-icon icon-user" aria-hidden="true"></span>
+            Wallet traders label
+          </label>
+          <div class="field-control">
+            <span class="field-icon icon-user" aria-hidden="true"></span>
+            <select id="walletLabel">
+              <option value="all" selected>All</option>
+              <option value="kol">Kol</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="walletActionsTarget" class="inline-actions-target"></div>
+
+        <div class="field">
+          <label for="walletSortDirection">
+            <span class="label-icon field-icon icon-sort" aria-hidden="true"></span>
+            Sort Direction
+          </label>
+          <div class="field-control">
+            <span class="field-icon icon-sort" aria-hidden="true"></span>
+            <select id="walletSortDirection">
+              <option value="desc" selected>sortByDesc</option>
+              <option value="asc">sortByAsc</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="walletLimit">
+            <span class="label-icon field-icon icon-hash" aria-hidden="true"></span>
+            limit
+          </label>
+          <div class="field-control">
+            <span class="field-icon icon-hash" aria-hidden="true"></span>
+            <select id="walletLimit">
+              <option value="100">100</option>
+              <option value="250">250</option>
+              <option value="500">500</option>
+              <option value="1000" selected>1000</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="walletPage">
+            <span class="label-icon field-icon icon-pages" aria-hidden="true"></span>
+            Page
+          </label>
+          <div class="field-control">
+            <span class="field-icon icon-pages" aria-hidden="true"></span>
+            <input type="number" id="walletPage" min="0" step="1" value="0" />
+          </div>
+        </div>
+      </div>
+
+      <div class="candles-mint-resolution-row token-only-controls" id="tokenOnlyControls">
+        <div id="tokenActionsTarget" class="inline-actions-target"></div>
 
         <div class="field">
           <label for="tokenTopPnlSortDirection">
             <span class="label-icon field-icon icon-sort" aria-hidden="true"></span>
-            Token top PnL sort direction
+            Sort Direction
           </label>
           <div class="field-control">
             <span class="field-icon icon-sort" aria-hidden="true"></span>
@@ -191,20 +191,9 @@
         </div>
 
         <div class="field">
-          <label for="tokenTopPnlPage">
-            <span class="label-icon field-icon icon-pages" aria-hidden="true"></span>
-            Token top PnL page
-          </label>
-          <div class="field-control">
-            <span class="field-icon icon-pages" aria-hidden="true"></span>
-            <input type="number" id="tokenTopPnlPage" min="0" step="1" value="0" />
-          </div>
-        </div>
-
-        <div class="field">
           <label for="tokenTopPnlLimit">
             <span class="label-icon field-icon icon-hash" aria-hidden="true"></span>
-            Token top PnL limit
+            limit
           </label>
           <div class="field-control">
             <span class="field-icon icon-hash" aria-hidden="true"></span>
@@ -216,13 +205,30 @@
             </select>
           </div>
         </div>
+
+        <div class="field">
+          <label for="tokenTopPnlPage">
+            <span class="label-icon field-icon icon-pages" aria-hidden="true"></span>
+            Page
+          </label>
+          <div class="field-control">
+            <span class="field-icon icon-pages" aria-hidden="true"></span>
+            <input type="number" id="tokenTopPnlPage" min="0" step="1" value="0" />
+          </div>
+        </div>
       </div>
 
-      <div class="actions">
-        <button type="button" id="fetchAll" class="fetch-btn-attention">Load token analytics</button>
-        <div class="loading" id="loadingIndicator" hidden aria-hidden="true">
-          <span class="loading-spinner"></span>
-          <span class="loading-text">Loading…</span>
+      <div class="field inline-row-actions" id="fetchActions">
+        <label for="fetchAll">
+          <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
+          Action
+        </label>
+        <div class="actions-buttons">
+          <button type="button" id="fetchAll" class="fetch-btn-attention">Load token analytics</button>
+          <div class="loading" id="loadingIndicator" hidden aria-hidden="true">
+            <span class="loading-spinner"></span>
+            <span class="loading-text">Loading…</span>
+          </div>
         </div>
       </div>
     </section>
@@ -311,6 +317,6 @@
       <pre id="errorText"></pre>
     </section>
   </div>
-  <script src="app.js"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>
