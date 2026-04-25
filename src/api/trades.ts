@@ -5,7 +5,11 @@
  */
 
 import type { AxiosInstance } from 'axios';
-import type { VybeProgramsResponse, VybeTopTradersResponse } from '../types/api.js';
+import type {
+  VybeProgramsResponse,
+  VybeTopTradersResponse,
+  VybeTokenTopPnlTradersResponse,
+} from '../types/api.js';
 import { withRetry } from './client.js';
 
 /** Trade item from GET /v4/trades (shape varies; we use programAddress, quoteMintAddress, marketAddress). */
@@ -73,6 +77,7 @@ export interface GetTopTradersOptions {
   ilikeFilter?: string;
   label?: string;
   resolution?: string;
+  sortByAsc?: string;
   sortByDesc?: string;
   limit?: number;
   page?: number;
@@ -91,17 +96,22 @@ export async function getTopTraders(
     mintAddress,
     ilikeFilter,
     label,
-    resolution = '30d',
+    resolution = '1d',
+    sortByAsc,
     sortByDesc = 'realizedPnlUsd',
-    limit = 100,
+    limit = 1000,
     page,
   } = options;
   return withRetry(async () => {
     const params: Record<string, string | number> = {
       resolution,
-      sortByDesc,
       limit,
     };
+    if (sortByAsc) {
+      params.sortByAsc = sortByAsc;
+    } else {
+      params.sortByDesc = sortByDesc;
+    }
     if (mintAddress) params.mintAddress = mintAddress;
     if (ilikeFilter) params.ilikeFilter = ilikeFilter;
     if (label) params.label = label;
@@ -109,6 +119,51 @@ export async function getTopTraders(
     const { data } = await http.get<VybeTopTradersResponse>('/v4/wallets/top-traders', {
       params,
     });
+    return data;
+  });
+}
+
+export interface GetTopPnlTradersOptions {
+  resolution?: string;
+  sortByAsc?: string;
+  sortByDesc?: string;
+  limit?: number;
+  page?: number;
+}
+
+/**
+ * Fetch token top PnL traders.
+ * @param http - Authenticated axios instance
+ * @param mintAddress - Token mint address
+ * @param options - sorting/pagination controls
+ */
+export async function getTokenTopPnlTraders(
+  http: AxiosInstance,
+  mintAddress: string,
+  options: GetTopPnlTradersOptions = {}
+): Promise<VybeTokenTopPnlTradersResponse> {
+  const {
+    resolution = '1d',
+    sortByAsc,
+    sortByDesc = 'realizedPnlUsd',
+    limit = 1000,
+    page = 0,
+  } = options;
+  return withRetry(async () => {
+    const params: Record<string, string | number> = {
+      resolution,
+      limit,
+      page,
+    };
+    if (sortByAsc) {
+      params.sortByAsc = sortByAsc;
+    } else {
+      params.sortByDesc = sortByDesc;
+    }
+    const { data } = await http.get<VybeTokenTopPnlTradersResponse>(
+      `/v4/tokens/${encodeURIComponent(mintAddress)}/top-pnl-traders`,
+      { params }
+    );
     return data;
   });
 }

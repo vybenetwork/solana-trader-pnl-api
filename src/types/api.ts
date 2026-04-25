@@ -82,3 +82,26 @@ export interface VybeTopTradersResponse {
   data: VybeTopTrader[];
   [key: string]: unknown;
 }
+
+/** Top PnL trader from GET /v4/tokens/{mintAddress}/top-pnl-traders */
+export interface VybeTokenTopPnlTrader {
+  traderAddress: string;
+  name?: string | null;
+  logoUrl?: string | null;
+  labels?: string[];
+  realizedPnlUsd: number;
+  unrealizedPnlUsd: number;
+  totalVolumeUsd: number;
+  buyVolumeUsd: number;
+  sellVolumeUsd: number;
+  tradesCount: number;
+  buyCount: number;
+  sellCount: number;
+  [key: string]: unknown;
+}
+
+/** Token top PnL traders response wrapper */
+export interface VybeTokenTopPnlTradersResponse {
+  data: VybeTokenTopPnlTrader[];
+  [key: string]: unknown;
+}

@@ -214,7 +214,8 @@ app.get('/api/wallets/top-traders', async (req: Request, res: Response) => {
     if (!mintAddress && !ilikeFilter) {
       return res.status(400).json({ error: 'mintAddress or ilikeFilter required' });
     }
-    const resolution = queryOne(req, 'resolution') ?? '30d';
+    const resolution = queryOne(req, 'resolution') ?? '1d';
+    const sortByAsc = queryOne(req, 'sortByAsc');
     const sortByDesc = queryOne(req, 'sortByDesc') ?? 'realizedPnlUsd';
     const label = queryOne(req, 'label');
     const pageRaw = queryOne(req, 'page');
@@ -227,9 +228,36 @@ app.get('/api/wallets/top-traders', async (req: Request, res: Response) => {
       ...(mintAddress ? { mintAddress } : {}),
       ...(ilikeFilter ? { ilikeFilter } : {}),
       ...(label ? { label } : {}),
+      ...(sortByAsc ? { sortByAsc } : {}),
       ...(page !== undefined ? { page } : {}),
       resolution,
-      sortByDesc,
+      ...(sortByAsc ? {} : { sortByDesc }),
+      limit,
+    });
+    res.json(data);
+  } catch (err) {
+    const status = (err as { response?: { status?: number } })?.response?.status ?? 500;
+    res.status(status).json({ error: toHumanReadableError(err) });
+  }
+});
+
+app.get('/api/tokens/:mint/top-pnl-traders', async (req: Request, res: Response) => {
+  try {
+    const mint = param(req, 'mint').trim();
+    if (!mint) return res.status(400).json({ error: 'Mint address required' });
+    const resolution = queryOne(req, 'resolution') ?? '1d';
+    const sortByAsc = queryOne(req, 'sortByAsc');
+    const sortByDesc = queryOne(req, 'sortByDesc') ?? 'realizedPnlUsd';
+    const pageRaw = queryOne(req, 'page');
+    const page =
+      pageRaw != null && !Number.isNaN(Number(pageRaw)) && Number(pageRaw) >= 0
+        ? Number(pageRaw)
+        : undefined;
+    const limit = Math.min(Number(queryOne(req, 'limit')) || 1000, 1000);
+    const data = await client.getTokenTopPnlTraders(mint, {
+      resolution,
+      ...(sortByAsc ? { sortByAsc } : { sortByDesc }),
+      ...(page !== undefined ? { page } : {}),
       limit,
     });
     res.json(data);

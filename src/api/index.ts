@@ -11,11 +11,18 @@ import {
   getTrades,
   getLabeledProgramAccount,
   getTopTraders,
+  getTokenTopPnlTraders,
   type GetTradesOptions,
   type GetTopTradersOptions,
+  type GetTopPnlTradersOptions,
   type VybeTradesResponse,
 } from './trades.js';
-import type { VybeTopHoldersResponse, VybeProgramsResponse, VybeTopTradersResponse } from '../types/api.js';
+import type {
+  VybeTopHoldersResponse,
+  VybeProgramsResponse,
+  VybeTopTradersResponse,
+  VybeTokenTopPnlTradersResponse,
+} from '../types/api.js';
 
 export interface VybeClient {
   getToken(mintAddress: string): Promise<VybeToken>;
@@ -23,6 +30,10 @@ export interface VybeClient {
   getTrades(mintAddress: string, options?: GetTradesOptions): Promise<VybeTradesResponse>;
   getLabeledProgramAccount(programAddress: string): Promise<VybeProgramsResponse>;
   getTopTraders(options?: GetTopTradersOptions): Promise<VybeTopTradersResponse>;
+  getTokenTopPnlTraders(
+    mintAddress: string,
+    options?: GetTopPnlTradersOptions
+  ): Promise<VybeTokenTopPnlTradersResponse>;
 }
 
 /**
@@ -39,5 +50,7 @@ export function createClient(apiKey: string): VybeClient {
       getTrades(http, mintAddress, options),
     getLabeledProgramAccount: (programAddress: string) => getLabeledProgramAccount(http, programAddress),
     getTopTraders: (options?: GetTopTradersOptions) => getTopTraders(http, options),
+    getTokenTopPnlTraders: (mintAddress: string, options?: GetTopPnlTradersOptions) =>
+      getTokenTopPnlTraders(http, mintAddress, options),
   };
 }
