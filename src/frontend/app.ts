@@ -72,6 +72,16 @@ const tokenLogo = document.getElementById('tokenLogo') as HTMLImageElement;
 const tokenSymbol = document.getElementById('tokenSymbol') as HTMLElement;
 const tokenName = document.getElementById('tokenName') as HTMLElement;
 const tokenStats = document.getElementById('tokenStats') as HTMLElement;
+const tokenSupplyPanel = document.getElementById('tokenSupplyPanel') as HTMLElement;
+const tokenSupplyPie = document.getElementById('tokenSupplyPie') as HTMLElement;
+const tokenSupplyLegend = document.getElementById('tokenSupplyLegend') as HTMLElement;
+const tokenLabelSupplyPie = document.getElementById('tokenLabelSupplyPie') as HTMLElement;
+const tokenLabelSupplyLegend = document.getElementById('tokenLabelSupplyLegend') as HTMLElement;
+const tokenSupplyPanelTotal = document.getElementById('tokenSupplyPanelTotal') as HTMLElement;
+const tokenSupplyPieTotal = document.getElementById('tokenSupplyPieTotal') as HTMLElement;
+const tokenSupplyLegendTotal = document.getElementById('tokenSupplyLegendTotal') as HTMLElement;
+const tokenLabelSupplyPieTotal = document.getElementById('tokenLabelSupplyPieTotal') as HTMLElement;
+const tokenLabelSupplyLegendTotal = document.getElementById('tokenLabelSupplyLegendTotal') as HTMLElement;
 
 const topTradersSection = document.getElementById('topTradersSection') as HTMLElement;
 const topTradersLoading = document.getElementById('topTradersLoading') as HTMLElement;
@@ -112,6 +122,8 @@ function applySearchModeUI(): void {
     : 'e.g. 7xKXtg2CW4fXh1vM4dfV2Qx9tqGk8hL38Gy4X9Kq8p7y';
   fetchAllBtn.textContent = tokenMode ? 'Load token analytics' : 'Search top traders';
   tokenSection.hidden = !tokenMode;
+  tokenSupplyPanel.hidden = !tokenMode;
+  tokenSupplyPanelTotal.hidden = !tokenMode;
   topTradersSection.hidden = tokenMode;
   tokenTopPnlSection.hidden = !tokenMode;
   tokenOnlyControls.hidden = !tokenMode;
@@ -157,10 +169,24 @@ function formatUsdFull(n: number | null | undefined): string {
   if (n == null) return '—';
   const num = Number(n);
   if (Number.isNaN(num)) return '—';
+  const roundedToCent = Math.round(num * 100) / 100;
+  if (roundedToCent === 0) return '0';
   const abs = Math.abs(num);
   const sign = num < 0 ? '-' : '';
-  if (abs < 10) return `$${num.toFixed(2)} USD`;
-  return `$${sign}${Math.abs(Math.round(num)).toLocaleString()} USD`;
+  if (abs < 1) return `$${num.toFixed(2)}`;
+  return `$${sign}${Math.abs(Math.round(num)).toLocaleString()}`;
+}
+
+function usdToneClass(n: number | null | undefined): string {
+  const num = Number(n);
+  if (!Number.isFinite(num)) return 'usd-tone--neutral';
+  if (num > 0) return 'usd-tone--positive';
+  if (num < 0) return 'usd-tone--negative';
+  return 'usd-tone--neutral';
+}
+
+function formatUsdCell(n: number | null | undefined): string {
+  return `<span class="usd-tone ${usdToneClass(n)}">${formatUsdFull(n)}</span>`;
 }
 
 function formatPrice(n: number | null | undefined): string {
@@ -348,16 +374,22 @@ function renderTopTraders(data: { data?: TopTraderRow[] }, mode: SearchMode, que
       return `<tr>
         <td>${rank}</td>
         <td>${accountLink}</td>
-        <td>${formatUsdFull(m.realizedPnlUsd)}</td>
+        <td>${formatUsdCell(m.realizedPnlUsd)}</td>
         <td style="text-align:right">${formatInt(m.tradesCount)}</td>
-        <td style="text-align:right">${formatUsdFull(m.tradesVolumeUsd)}</td>
+        <td style="text-align:right">${formatUsdCell(m.tradesVolumeUsd)}</td>
         <td style="text-align:right">${m.winRate != null ? `${Math.round(Number(m.winRate))}%` : '—'}</td>
       </tr>`;
     }).join('')
     : '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';
 }
 
-function renderTokenTopPnlTraders(data: { data?: TokenTopPnlTraderRow[] }, query: string, queryParams: URLSearchParams): void {
+function renderTokenTopPnlTraders(
+  data: { data?: TokenTopPnlTraderRow[] },
+  query: string,
+  queryParams: URLSearchParams,
+  volume24hByTrader: Record<string, number>,
+  trades24hByTrader: Record<string, number>
+): void {
   const list = data.data || [];
   tokenTopPnlMeta.textContent = list.length
     ? `GET /v4/tokens/${query}/top-pnl-traders with ${queryParams.toString()} returned ${list.length} row(s).`
@@ -370,16 +402,130 @@ function renderTokenTopPnlTraders(data: { data?: TokenTopPnlTraderRow[] }, query
       const traderLink = addr
         ? `<a href="https://vybe.fyi/wallets/${encodeURIComponent(addr)}" target="_blank" rel="noopener noreferrer" class="mono" title="${addr}">${display}</a>`
         : `<span class="mono">${display}</span>`;
+      const vol24h = addr && Object.prototype.hasOwnProperty.call(volume24hByTrader, addr) ? volume24hByTrader[addr] : 0;
+      const trades24h = addr && Object.prototype.hasOwnProperty.call(trades24hByTrader, addr) ? trades24hByTrader[addr] : 0;
       return `<tr>
         <td>${rank}</td>
         <td>${traderLink}</td>
-        <td style="text-align:right">${formatUsdFull(row.realizedPnlUsd)}</td>
-        <td style="text-align:right">${formatUsdFull(row.unrealizedPnlUsd)}</td>
-        <td style="text-align:right">${formatUsdFull(row.totalVolumeUsd)}</td>
+        <td style="text-align:right">${formatUsdCell(row.realizedPnlUsd)}</td>
+        <td style="text-align:right">${formatUsdCell(row.unrealizedPnlUsd)}</td>
+        <td style="text-align:right">${formatUsdCell(row.totalVolumeUsd)}</td>
+        <td style="text-align:right">${formatUsdCell(vol24h)}</td>
         <td style="text-align:right">${formatInt(row.tradesCount)}</td>
+        <td style="text-align:right">${formatInt(trades24h)}</td>
       </tr>`;
     }).join('')
-    : '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';
+    : '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';
+}
+
+function toNum(value: number | string | undefined): number {
+  if (value == null) return 0;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+}
+
+function isLabeledTrader(row: TokenTopPnlTraderRow): boolean {
+  return (row.name ?? '').trim() !== '';
+}
+
+function renderTopTraderVolumeCharts(rows: TokenTopPnlTraderRow[], topLimit: number, token: TokenData | null): void {
+  const limitN = Math.max(1, topLimit);
+  const volumeRows = rows.slice(0, limitN);
+  const showTop101Bucket = limitN >= 250;
+  const topNVol = volumeRows.reduce((acc, row) => acc + toNum(row.totalVolumeUsd), 0);
+  const top100Vol = volumeRows.slice(0, 100).reduce((acc, row) => acc + toNum(row.totalVolumeUsd), 0);
+  const top10Vol = volumeRows.slice(0, 10).reduce((acc, row) => acc + toNum(row.totalVolumeUsd), 0);
+  const top11to100Vol = Math.max(0, Math.min(top100Vol, topNVol) - top10Vol);
+  const top101toNVol = showTop101Bucket ? Math.max(0, topNVol - Math.min(top100Vol, topNVol)) : 0;
+  const token24hVolumeUsd = Math.max(0, toNum(token?.usdValueVolume24h));
+  const denominatorUsd = Math.max(1, token24hVolumeUsd, topNVol);
+  const remainingVol = Math.max(0, denominatorUsd - topNVol);
+
+  const top10Slice = Math.max(0, Math.min(100, (top10Vol / denominatorUsd) * 100));
+  const top11to100Slice = Math.max(0, Math.min(100, (top11to100Vol / denominatorUsd) * 100));
+  const top101toNSlice = showTop101Bucket ? Math.max(0, Math.min(100, (top101toNVol / denominatorUsd) * 100)) : 0;
+  const remainingSlice = Math.max(0, Math.min(100, (remainingVol / denominatorUsd) * 100));
+
+  const a = top10Slice * 3.6;
+  const b = (top10Slice + top11to100Slice) * 3.6;
+  const c = (top10Slice + top11to100Slice + top101toNSlice) * 3.6;
+  tokenSupplyPie.style.background = `conic-gradient(
+    #3b82f6 0deg ${a}deg,
+    #2563eb ${a}deg ${b}deg,
+    #1d4ed8 ${b}deg ${c}deg,
+    #27272a ${c}deg 360deg
+  )`;
+
+  tokenSupplyLegend.innerHTML = `
+    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#3b82f6"></span><span>Top 10 traders ${top10Slice.toFixed(2)}% (${formatUsdFull(top10Vol)})</span></div>
+    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#2563eb"></span><span>Top 11-100 traders ${top11to100Slice.toFixed(2)}% (${formatUsdFull(top11to100Vol)})</span></div>
+    ${showTop101Bucket ? `<div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#1d4ed8"></span><span>Top 101-${limitN.toLocaleString()} traders ${top101toNSlice.toFixed(2)}% (${formatUsdFull(top101toNVol)})</span></div>` : ''}
+    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#27272a"></span><span>Non-top traders ${remainingSlice.toFixed(2)}% (${formatUsdFull(remainingVol)})</span></div>
+  `;
+
+  const labeledTopNVol = volumeRows.reduce((acc, row) => acc + (isLabeledTrader(row) ? toNum(row.totalVolumeUsd) : 0), 0);
+  const unlabeledTopNVol = Math.max(0, topNVol - labeledTopNVol);
+  const labeledSlice = Math.max(0, Math.min(100, (labeledTopNVol / denominatorUsd) * 100));
+  const unlabeledTopNSlice = Math.max(0, Math.min(100, (unlabeledTopNVol / denominatorUsd) * 100));
+  const nonTopNSlice = Math.max(0, Math.min(100, (remainingVol / denominatorUsd) * 100));
+  const labeledDeg = labeledSlice * 3.6;
+  const unlabeledTopDeg = (labeledSlice + unlabeledTopNSlice) * 3.6;
+  tokenLabelSupplyPie.style.background = `conic-gradient(
+    #3b82f6 0deg ${labeledDeg}deg,
+    #1d4ed8 ${labeledDeg}deg ${unlabeledTopDeg}deg,
+    #27272a ${unlabeledTopDeg}deg 360deg
+  )`;
+  tokenLabelSupplyLegend.innerHTML = `
+    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#3b82f6"></span><span>Labeled top ${limitN.toLocaleString()} volume ${labeledSlice.toFixed(2)}% (${formatUsdFull(labeledTopNVol)})</span></div>
+    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#1d4ed8"></span><span>Unlabeled top ${limitN.toLocaleString()} volume ${unlabeledTopNSlice.toFixed(2)}% (${formatUsdFull(unlabeledTopNVol)})</span></div>
+    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#27272a"></span><span>Non-top ${limitN.toLocaleString()} volume ${nonTopNSlice.toFixed(2)}% (${formatUsdFull(remainingVol)})</span></div>
+  `;
+}
+
+function renderTopTraderSelectedResolutionCharts(rows: TokenTopPnlTraderRow[], topLimit: number): void {
+  const limitN = Math.max(1, topLimit);
+  const volumeRows = rows.slice(0, limitN);
+  const showTop101Bucket = limitN >= 250;
+  const topNVol = volumeRows.reduce((acc, row) => acc + toNum(row.totalVolumeUsd), 0);
+  const top100Vol = volumeRows.slice(0, 100).reduce((acc, row) => acc + toNum(row.totalVolumeUsd), 0);
+  const top10Vol = volumeRows.slice(0, 10).reduce((acc, row) => acc + toNum(row.totalVolumeUsd), 0);
+  const top11to100Vol = Math.max(0, Math.min(top100Vol, topNVol) - top10Vol);
+  const top101toNVol = showTop101Bucket ? Math.max(0, topNVol - Math.min(top100Vol, topNVol)) : 0;
+  const denominatorUsd = Math.max(1, topNVol);
+  const top10Slice = Math.max(0, Math.min(100, (top10Vol / denominatorUsd) * 100));
+  const top11to100Slice = Math.max(0, Math.min(100, (top11to100Vol / denominatorUsd) * 100));
+  const top101toNSlice = showTop101Bucket ? Math.max(0, Math.min(100, (top101toNVol / denominatorUsd) * 100)) : 0;
+  const remainingSlice = Math.max(0, 100 - (top10Slice + top11to100Slice + top101toNSlice));
+
+  const a = top10Slice * 3.6;
+  const b = (top10Slice + top11to100Slice) * 3.6;
+  const c = (top10Slice + top11to100Slice + top101toNSlice) * 3.6;
+  tokenSupplyPieTotal.style.background = `conic-gradient(
+    #3b82f6 0deg ${a}deg,
+    #2563eb ${a}deg ${b}deg,
+    #1d4ed8 ${b}deg ${c}deg,
+    #27272a ${c}deg 360deg
+  )`;
+  tokenSupplyLegendTotal.innerHTML = `
+    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#3b82f6"></span><span>Top 10 traders ${top10Slice.toFixed(2)}% (${formatUsdFull(top10Vol)})</span></div>
+    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#2563eb"></span><span>Top 11-100 traders ${top11to100Slice.toFixed(2)}% (${formatUsdFull(top11to100Vol)})</span></div>
+    ${showTop101Bucket ? `<div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#1d4ed8"></span><span>Top 101-${limitN.toLocaleString()} traders ${top101toNSlice.toFixed(2)}% (${formatUsdFull(top101toNVol)})</span></div>` : ''}
+    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#27272a"></span><span>Other top ${limitN.toLocaleString()} volume ${remainingSlice.toFixed(2)}%</span></div>
+  `;
+
+  const labeledTopNVol = volumeRows.reduce((acc, row) => acc + (isLabeledTrader(row) ? toNum(row.totalVolumeUsd) : 0), 0);
+  const unlabeledTopNVol = Math.max(0, topNVol - labeledTopNVol);
+  const labeledSlice = topNVol > 0 ? Math.max(0, Math.min(100, (labeledTopNVol / denominatorUsd) * 100)) : 0;
+  const unlabeledTopNSlice = topNVol > 0 ? Math.max(0, 100 - labeledSlice) : 0;
+  const labeledDeg = labeledSlice * 3.6;
+  tokenLabelSupplyPieTotal.style.background = `conic-gradient(
+    #3b82f6 0deg ${labeledDeg}deg,
+    #1d4ed8 ${labeledDeg}deg 360deg
+  )`;
+  tokenLabelSupplyLegendTotal.innerHTML = `
+    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#3b82f6"></span><span>Labeled top ${limitN.toLocaleString()} volume ${labeledSlice.toFixed(2)}% (${formatUsdFull(labeledTopNVol)})</span></div>
+    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#1d4ed8"></span><span>Unlabeled top ${limitN.toLocaleString()} volume ${unlabeledTopNSlice.toFixed(2)}% (${formatUsdFull(unlabeledTopNVol)})</span></div>
+  `;
 }
 
 async function loadData(): Promise<void> {
@@ -401,17 +547,55 @@ async function loadData(): Promise<void> {
   const tokenTopPnlParams = buildTokenTopPnlParams();
 
   try {
+    let tokenData: TokenData | null = null;
     if (tokenMode) {
       const tokenRes = await fetchWithRetry(`/api/tokens/${encodeURIComponent(query)}`);
       if (tokenRes.ok) {
-        renderToken((await tokenRes.json()) as TokenData);
+        tokenData = (await tokenRes.json()) as TokenData;
+        renderToken(tokenData);
       } else {
         showSectionError(tokenSectionError, `Failed (${tokenRes.status})`);
       }
       const tokenTopPnlRes = await fetchWithRetry(`/api/tokens/${encodeURIComponent(query)}/top-pnl-traders?${tokenTopPnlParams.toString()}`);
       if (tokenTopPnlRes.ok) {
-        renderTokenTopPnlTraders(await tokenTopPnlRes.json() as { data?: TokenTopPnlTraderRow[] }, query, tokenTopPnlParams);
+        const tokenTopPnlData = await tokenTopPnlRes.json() as { data?: TokenTopPnlTraderRow[] };
+
+        const chartParams = new URLSearchParams(tokenTopPnlParams);
+        chartParams.set('resolution', '1d');
+        chartParams.delete('sortByAsc');
+        chartParams.delete('sortByDesc');
+        if ((tokenTopPnlSortDirection.value as SortDirection) === 'asc') {
+          chartParams.set('sortByAsc', 'totalVolumeUsd');
+        } else {
+          chartParams.set('sortByDesc', 'totalVolumeUsd');
+        }
+        let chartRows = tokenTopPnlData.data ?? [];
+        if ((tokenTopPnlParams.get('resolution') || '').toLowerCase() !== '1d') {
+          const tokenTopPnl1dRes = await fetchWithRetry(`/api/tokens/${encodeURIComponent(query)}/top-pnl-traders?${chartParams.toString()}`);
+          if (tokenTopPnl1dRes.ok) {
+            const tokenTopPnl1dBody = await tokenTopPnl1dRes.json() as { data?: TokenTopPnlTraderRow[] };
+            chartRows = tokenTopPnl1dBody.data ?? [];
+          }
+        }
+
+        const volume24hByTrader: Record<string, number> = {};
+        const trades24hByTrader: Record<string, number> = {};
+        chartRows.forEach((row) => {
+          const addr = row.traderAddress;
+          if (!addr) return;
+          volume24hByTrader[addr] = toNum(row.totalVolumeUsd);
+          trades24hByTrader[addr] = toNum(row.tradesCount);
+        });
+        renderTokenTopPnlTraders(tokenTopPnlData, query, tokenTopPnlParams, volume24hByTrader, trades24hByTrader);
+
+        const chartLimit = Math.max(10, Math.min(1000, Number(tokenTopPnlLimit.value) || 1000));
+        renderTopTraderVolumeCharts(chartRows, chartLimit, tokenData);
+        renderTopTraderSelectedResolutionCharts(tokenTopPnlData.data ?? [], chartLimit);
       } else {
+        tokenSupplyLegend.innerHTML = '';
+        tokenLabelSupplyLegend.innerHTML = '';
+        tokenSupplyLegendTotal.innerHTML = '';
+        tokenLabelSupplyLegendTotal.innerHTML = '';
         showSectionError(tokenTopPnlError, `Failed (${tokenTopPnlRes.status})`);
       }
     } else {
@@ -446,4 +630,4 @@ setSearchMode(getSearchMode());
 if (!mintInput.value.trim()) mintInput.value = DEMO_MINT;
 applySearchModeUI();
 topTradersBody.innerHTML = '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';
-tokenTopPnlBody.innerHTML = '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';
+tokenTopPnlBody.innerHTML = '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';

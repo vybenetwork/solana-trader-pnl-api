@@ -67,7 +67,7 @@ app.get('/api/tokens/:mint/top-holders', async (req: Request, res: Response) => 
   try {
     const mint = param(req, 'mint').trim();
     if (!mint) return res.status(400).json({ error: 'Mint address required' });
-    const limit = Math.min(Number(req.query.limit) || 100, 100);
+    const limit = Math.min(Number(req.query.limit) || 100, 1000);
     const page = Math.max(0, Number(req.query.page) || 0);
     const sortByDesc = (req.query.sortByDesc as string) || 'percentageOfSupplyHeld';
     const data = await client.getTopHolders(mint, { limit, page, sortByDesc });
