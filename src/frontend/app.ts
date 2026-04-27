@@ -83,6 +83,9 @@ const tokenPnlBarsTotal = document.getElementById('tokenPnlBarsTotal') as HTMLEl
 const tokenSupplySelectedTitle = document.getElementById('tokenSupplySelectedTitle') as HTMLElement;
 const tokenPnlSelectedTitle = document.getElementById('tokenPnlSelectedTitle') as HTMLElement;
 const tokenTopVolumeSelectedTitle = document.getElementById('tokenTopVolumeSelectedTitle') as HTMLElement;
+const tokenTradesCountSelectedRow = document.getElementById('tokenTradesCountSelectedRow') as HTMLElement;
+const tokenTradesCountSelectedTitle = document.getElementById('tokenTradesCountSelectedTitle') as HTMLElement;
+const tokenTradesCountBarsVertical = document.getElementById('tokenTradesCountBarsVertical') as HTMLElement;
 
 const topTradersSection = document.getElementById('topTradersSection') as HTMLElement;
 const topTradersLoading = document.getElementById('topTradersLoading') as HTMLElement;
@@ -190,6 +193,23 @@ function usdToneClass(n: number | null | undefined): string {
 
 function formatUsdCell(n: number | null | undefined): string {
   return `<span class="usd-tone ${usdToneClass(n)}">${formatUsdFull(n)}</span>`;
+}
+
+function formatIntFull(n: number | null | undefined): string {
+  if (n == null) return '—';
+  const num = Number(n);
+  if (!Number.isFinite(num)) return '—';
+  return Math.round(num).toLocaleString();
+}
+
+function formatTradesCountCell(n: number | null | undefined): string {
+  const text = formatIntFull(n);
+  if (text === '—') return text;
+  const num = Number(n);
+  if (num === 0) {
+    return `<span class="usd-tone usd-tone--neutral">${text}</span>`;
+  }
+  return text;
 }
 
 function applyTokenTopPnl24hColumnVisibility(): void {
@@ -425,8 +445,8 @@ function renderTokenTopPnlTraders(
         <td style="text-align:right">${formatUsdCell(row.unrealizedPnlUsd)}</td>
         <td style="text-align:right">${formatUsdCell(row.totalVolumeUsd)}</td>
         <td class="token-top-pnl-24h-col" style="text-align:right">${formatUsdCell(vol24h)}</td>
-        <td style="text-align:right">${formatInt(row.tradesCount)}</td>
-        <td class="token-top-pnl-24h-col" style="text-align:right">${formatInt(trades24h)}</td>
+        <td style="text-align:right">${formatTradesCountCell(row.tradesCount)}</td>
+        <td class="token-top-pnl-24h-col" style="text-align:right">${formatTradesCountCell(trades24h)}</td>
       </tr>`;
     }).join('')
     : '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="token-top-pnl-24h-col">—</td><td>—</td><td class="token-top-pnl-24h-col">—</td></tr>';
@@ -457,6 +477,37 @@ function formatResolutionSectionLabel(resolution: string): string {
 
 function formatResolutionForTitle(resolutionLabel: string): string {
   return resolutionLabel.toLowerCase() === '24hr' ? '24Hr' : resolutionLabel;
+}
+
+function formatTradeTierValue(n: number): string {
+  const num = Math.max(0, Number(n));
+  if (!Number.isFinite(num)) return '0';
+  if (num >= 1e9) {
+    const scaled = (num / 1e9).toFixed(2).replace(/\.?0+$/, '');
+    return `${scaled}B`;
+  }
+  if (num >= 1e6) {
+    const scaled = (num / 1e6).toFixed(2).replace(/\.?0+$/, '');
+    return `${scaled}M`;
+  }
+  if (num >= 1e3) {
+    const scaled = (num / 1e3).toFixed(2).replace(/\.?0+$/, '');
+    return `${scaled}K`;
+  }
+  return Math.round(num).toLocaleString();
+}
+
+function getResolutionKey(): string {
+  return tokenTopPnlResolution.value.trim().toLowerCase();
+}
+
+function shouldShowSelectedTradesVerticalRow(): boolean {
+  const resolution = getResolutionKey();
+  return resolution === '7d' || resolution === '30d';
+}
+
+function applySelectedTradesVerticalRowVisibility(): void {
+  tokenTradesCountSelectedRow.hidden = !shouldShowSelectedTradesVerticalRow();
 }
 
 function renderPieLegendRow(label: string, percentage: number, volume: string, color: string): string {
@@ -707,6 +758,35 @@ function renderTradesCountDistributionBars(
   target: HTMLElement,
   maxGroups: number
 ): void {
+  const groups = buildTradesCountGroups(rows, topLimit, maxGroups);
+  if (groups == null) {
+    target.innerHTML = '<div class="token-pnl-bar-label">No trades-count data for current selection.</div>';
+    return;
+  }
+
+  const maxCount = Math.max(1, ...groups.map((g) => g.count));
+  target.innerHTML = groups
+    .map((group) => {
+      const widthPct = (group.count / maxCount) * 100;
+      const t = Math.max(0, Math.min(1, group.gradientT));
+      return `<div class="token-pnl-bar-row">
+        <div class="token-pnl-bar-label">${group.label}</div>
+        <div class="token-pnl-bar-track">
+          <div class="token-pnl-bar-fill token-pnl-bar-fill--trade-scale" style="width:${widthPct.toFixed(2)}%; --trade-grad-t:${t.toFixed(4)};"></div>
+          <span class="token-pnl-bar-count">${group.count}</span>
+        </div>
+      </div>`;
+    })
+    .join('');
+}
+
+type TradesCountDistributionGroup = { label: string; count: number; gradientT: number };
+
+function buildTradesCountGroups(
+  rows: TokenTopPnlTraderRow[],
+  topLimit: number,
+  groupCount: number
+): TradesCountDistributionGroup[] | null {
   const limitN = Math.max(1, topLimit);
   const values = rows
     .slice(0, limitN)
@@ -714,11 +794,12 @@ function renderTradesCountDistributionBars(
     .filter((v) => Number.isFinite(v));
 
   if (values.length === 0) {
-    target.innerHTML = '<div class="token-pnl-bar-label">No trades-count data for current selection.</div>';
-    return;
+    return null;
   }
 
   const positiveValues = values.filter((v) => v > 0);
+  const zeroCount = values.filter((v) => v === 0).length;
+  const positiveSlots = Math.max(1, groupCount - (zeroCount > 0 ? 1 : 0));
   const edges = buildCountTierEdges(Math.max(0, ...positiveValues));
   const ranges: { lower: number; upper: number }[] = [];
   for (let i = edges.length - 1; i >= 1; i--) {
@@ -744,41 +825,84 @@ function renderTradesCountDistributionBars(
     break;
   }
 
-  const groups: { label: string; count: number; tone: 'positive' | 'negative' | 'neutral'; gradientT: number }[] = ranges.map((range, idx, arr) => {
+  while (ranges.length < positiveSlots) {
+    const splitIndex = ranges.findIndex((range) => range.upper - range.lower > 1);
+    if (splitIndex < 0) break;
+    const source = ranges[splitIndex];
+    const mid = Math.round((source.lower + source.upper) / 2);
+    if (mid <= source.lower || mid >= source.upper) break;
+    ranges.splice(splitIndex, 1, { lower: mid, upper: source.upper }, { lower: source.lower, upper: mid });
+  }
+
+  const selectedRanges = ranges.slice(0, positiveSlots);
+  if (zeroCount === 0) {
+    const lowSingleIndex = selectedRanges.findIndex((range) => range.lower === 0 && range.upper === 1);
+    const lowBandIndex = selectedRanges.findIndex((range) => range.lower === 1 && range.upper === 5);
+    if (lowSingleIndex >= 0 && lowBandIndex >= 0) {
+      let start = 1;
+      while (start < 5 && countForRange(start - 1, start) === 0) {
+        start += 1;
+      }
+      if (start > 1 && start < 5) {
+        selectedRanges[lowSingleIndex] = { lower: start - 1, upper: start };
+        selectedRanges[lowBandIndex] = { lower: start, upper: 5 };
+      }
+    }
+  }
+  const groups: TradesCountDistributionGroup[] = selectedRanges.map((range, idx) => {
     const count = countForRange(range.lower, range.upper);
-    const gradientT = arr.length <= 1 ? 1 : 1 - (idx / (arr.length - 1));
+    const gradientT = groupCount <= 1 ? 1 : 1 - (idx / (groupCount - 1));
+    const label = (() => {
+      if (range.lower === 0) {
+        return `>${formatTradeTierValue(0)}-${formatTradeTierValue(range.upper)}`;
+      }
+      if (
+        zeroCount === 0 &&
+        Number.isInteger(range.lower) &&
+        Number.isInteger(range.upper) &&
+        range.upper <= 10
+      ) {
+        const start = range.lower + 1;
+        if (start >= range.upper) return formatTradeTierValue(range.upper);
+        return `${formatTradeTierValue(start)}-${formatTradeTierValue(range.upper)}`;
+      }
+      return `${formatTradeTierValue(range.lower)}-${formatTradeTierValue(range.upper)}`;
+    })();
     return {
-      label: range.lower === 0
-        ? `> ${formatInt(range.lower)} to ${formatInt(range.upper)} trades`
-        : `${formatInt(range.lower)} to ${formatInt(range.upper)} trades`,
+      label,
       count,
-      tone: 'neutral',
       gradientT,
     };
   });
 
-  const zeroCount = values.filter((v) => v === 0).length;
-  if (zeroCount > 0) groups.push({ label: '0 trades', count: zeroCount, tone: 'neutral', gradientT: 0 });
+  if (zeroCount > 0) groups.push({ label: '0', count: zeroCount, gradientT: 0 });
+  return groups.slice(0, groupCount);
+}
 
-  if (groups.length === 0) {
-    target.innerHTML = '<div class="token-pnl-bar-label">No non-zero trades-count groups for current selection.</div>';
+function renderTradesCountDistributionVerticalBars(
+  rows: TokenTopPnlTraderRow[],
+  topLimit: number,
+  target: HTMLElement,
+  groupCount: number
+): void {
+  const groups = buildTradesCountGroups(rows, topLimit, groupCount);
+  if (groups == null) {
+    target.innerHTML = '<div class="token-pnl-bar-label">No trades-count data for current selection.</div>';
     return;
   }
 
-  const limitedGroups = applyMaxPnlGroups(groups, maxGroups) as Array<
-    { label: string; count: number; tone: 'positive' | 'negative' | 'neutral'; gradientT?: number }
-  >;
-  const maxCount = Math.max(1, ...limitedGroups.map((g) => g.count));
-  target.innerHTML = limitedGroups
+  const leftToRightGroups = [...groups].reverse();
+  const maxCount = Math.max(1, ...leftToRightGroups.map((g) => g.count));
+  target.innerHTML = leftToRightGroups
     .map((group) => {
-      const widthPct = (group.count / maxCount) * 100;
-      const t = Math.max(0, Math.min(1, group.gradientT ?? 0));
-      return `<div class="token-pnl-bar-row">
-        <div class="token-pnl-bar-label">${group.label}</div>
-        <div class="token-pnl-bar-track">
-          <div class="token-pnl-bar-fill token-pnl-bar-fill--trade-scale" style="width:${widthPct.toFixed(2)}%; --trade-grad-t:${t.toFixed(4)};"></div>
-          <span class="token-pnl-bar-count">${group.count}</span>
+      const heightPct = (group.count / maxCount) * 100;
+      const t = Math.max(0, Math.min(1, group.gradientT));
+      return `<div class="token-trades-vertical-bar-item">
+        <div class="token-trades-vertical-track">
+          <div class="token-trades-vertical-fill token-pnl-bar-fill--trade-scale" style="height:${heightPct.toFixed(2)}%; --trade-grad-t:${t.toFixed(4)};"></div>
+          <span class="token-trades-vertical-count">${group.count}</span>
         </div>
+        <div class="token-trades-vertical-label">${group.label}</div>
       </div>`;
     })
     .join('');
@@ -838,10 +962,17 @@ function renderTopTraderSelectedResolutionCharts(rows: TokenTopPnlTraderRow[], t
   tokenPnlSelectedTitle.textContent = resolutionLabel.toLowerCase() === '24hr'
     ? `Trades count distribution (Last ${titleResolution})`
     : `PnL distribution (Last ${titleResolution})`;
+  tokenTradesCountSelectedTitle.textContent = `Trades count distribution (Last ${titleResolution})`;
   if (resolutionLabel.toLowerCase() === '24hr') {
     renderTradesCountDistributionBars(rows, topLimit, tokenPnlBarsTotal, 8);
   } else {
     renderPnlDistributionBars(rows, topLimit, tokenPnlBarsTotal, 8);
+  }
+  applySelectedTradesVerticalRowVisibility();
+  if (shouldShowSelectedTradesVerticalRow()) {
+    renderTradesCountDistributionVerticalBars(rows, topLimit, tokenTradesCountBarsVertical, 10);
+  } else {
+    tokenTradesCountBarsVertical.innerHTML = '';
   }
 
   const [displayTop10, displayTop11to100, displayTop101toN] = applyMinVisibleSlices(
@@ -924,6 +1055,7 @@ async function loadData(): Promise<void> {
         tokenPnlBars24h.innerHTML = '';
         tokenSupplyLegendTotal.innerHTML = '';
         tokenPnlBarsTotal.innerHTML = '';
+        tokenTradesCountBarsVertical.innerHTML = '';
         showSectionError(tokenTopPnlError, `Failed (${tokenTopPnlRes.status})`);
       }
     } else {
@@ -962,6 +1094,8 @@ tokenTopPnlResolution.addEventListener('change', () => {
   tokenPnlSelectedTitle.textContent = resolutionLabel.toLowerCase() === '24hr'
     ? `Trades count distribution (Last ${titleResolution})`
     : `PnL distribution (Last ${titleResolution})`;
+  tokenTradesCountSelectedTitle.textContent = `Trades count distribution (Last ${titleResolution})`;
+  applySelectedTradesVerticalRowVisibility();
   applyTokenTopPnl24hColumnVisibility();
 });
 
@@ -972,9 +1106,11 @@ tokenTopVolumeSelectedTitle.textContent = `Top Traders Volume (Last ${initialTit
 tokenPnlSelectedTitle.textContent = initialResolutionLabel.toLowerCase() === '24hr'
   ? `Trades count distribution (Last ${initialTitleResolution})`
   : `PnL distribution (Last ${initialTitleResolution})`;
+tokenTradesCountSelectedTitle.textContent = `Trades count distribution (Last ${initialTitleResolution})`;
 setSearchMode(getSearchMode());
 if (!mintInput.value.trim()) mintInput.value = DEMO_MINT;
 applySearchModeUI();
+applySelectedTradesVerticalRowVisibility();
 topTradersBody.innerHTML = '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';
 tokenTopPnlBody.innerHTML = '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="token-top-pnl-24h-col">—</td><td>—</td><td class="token-top-pnl-24h-col">—</td></tr>';
 applyTokenTopPnl24hColumnVisibility();
