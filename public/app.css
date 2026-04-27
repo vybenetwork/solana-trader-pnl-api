@@ -728,6 +728,15 @@ button:active {
   margin-top: 0;
 }
 
+.token-supply-period-header {
+  margin-bottom: 0.9rem;
+}
+
+.token-supply-period-title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
 .token-supply-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -756,7 +765,7 @@ button:active {
 }
 
 .token-supply-pie {
-  width: clamp(240px, 28vw, 320px);
+  width: clamp(180px, 20vw, 240px);
   aspect-ratio: 1 / 1;
   height: auto;
   flex: 0 0 auto;
@@ -776,7 +785,7 @@ button:active {
 
 .token-supply-legend-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.6rem;
 }
 
@@ -785,6 +794,91 @@ button:active {
   height: 12px;
   border-radius: 2px;
   flex: 0 0 auto;
+}
+
+.token-supply-legend-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.token-supply-legend-label {
+  color: #e4e4e7;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.token-supply-legend-sublist {
+  margin: 0;
+  padding-left: 1.15rem;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.token-supply-legend-sublist li {
+  margin: 0.05rem 0;
+  overflow-wrap: anywhere;
+}
+
+.token-supply-legend-pct {
+  color: #f4f4f5;
+}
+
+.token-supply-legend-usd {
+  color: #86efac;
+}
+
+.token-pnl-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.token-pnl-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.token-pnl-bar-label {
+  font-size: 0.9rem;
+  color: #d4d4d8;
+}
+
+.token-pnl-bar-track {
+  position: relative;
+  height: 20px;
+  border-radius: 999px;
+  background: #18181b;
+  border: 1px solid #27272a;
+  overflow: hidden;
+}
+
+.token-pnl-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+}
+
+.token-pnl-bar-fill--positive {
+  background: linear-gradient(90deg, #16a34a, #4ade80);
+}
+
+.token-pnl-bar-fill--negative {
+  background: linear-gradient(90deg, #dc2626, #f87171);
+}
+
+.token-pnl-bar-fill--neutral {
+  background: linear-gradient(90deg, #6b7280, #9ca3af);
+}
+
+.token-pnl-bar-count {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.78rem;
+  color: #f4f4f5;
+  font-weight: 600;
 }
 
 .meta {

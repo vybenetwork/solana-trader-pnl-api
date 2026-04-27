@@ -75,13 +75,13 @@ const tokenStats = document.getElementById('tokenStats') as HTMLElement;
 const tokenSupplyPanel = document.getElementById('tokenSupplyPanel') as HTMLElement;
 const tokenSupplyPie = document.getElementById('tokenSupplyPie') as HTMLElement;
 const tokenSupplyLegend = document.getElementById('tokenSupplyLegend') as HTMLElement;
-const tokenLabelSupplyPie = document.getElementById('tokenLabelSupplyPie') as HTMLElement;
-const tokenLabelSupplyLegend = document.getElementById('tokenLabelSupplyLegend') as HTMLElement;
+const tokenPnlBars24h = document.getElementById('tokenPnlBars24h') as HTMLElement;
 const tokenSupplyPanelTotal = document.getElementById('tokenSupplyPanelTotal') as HTMLElement;
 const tokenSupplyPieTotal = document.getElementById('tokenSupplyPieTotal') as HTMLElement;
 const tokenSupplyLegendTotal = document.getElementById('tokenSupplyLegendTotal') as HTMLElement;
-const tokenLabelSupplyPieTotal = document.getElementById('tokenLabelSupplyPieTotal') as HTMLElement;
-const tokenLabelSupplyLegendTotal = document.getElementById('tokenLabelSupplyLegendTotal') as HTMLElement;
+const tokenPnlBarsTotal = document.getElementById('tokenPnlBarsTotal') as HTMLElement;
+const tokenSupplySelectedTitle = document.getElementById('tokenSupplySelectedTitle') as HTMLElement;
+const tokenPnlSelectedTitle = document.getElementById('tokenPnlSelectedTitle') as HTMLElement;
 
 const topTradersSection = document.getElementById('topTradersSection') as HTMLElement;
 const topTradersLoading = document.getElementById('topTradersLoading') as HTMLElement;
@@ -173,8 +173,8 @@ function formatUsdFull(n: number | null | undefined): string {
   if (roundedToCent === 0) return '0';
   const abs = Math.abs(num);
   const sign = num < 0 ? '-' : '';
-  if (abs < 1) return `$${num.toFixed(2)}`;
-  return `$${sign}${Math.abs(Math.round(num)).toLocaleString()}`;
+  if (abs < 1) return `${sign}$${abs.toFixed(2)}`;
+  return `${sign}$${Math.abs(Math.round(num)).toLocaleString()}`;
 }
 
 function usdToneClass(n: number | null | undefined): string {
@@ -424,8 +424,121 @@ function toNum(value: number | string | undefined): number {
   return Number.isFinite(num) ? num : 0;
 }
 
-function isLabeledTrader(row: TokenTopPnlTraderRow): boolean {
-  return (row.name ?? '').trim() !== '';
+function formatResolutionSectionLabel(resolution: string): string {
+  const raw = resolution.trim().toLowerCase();
+  const match = raw.match(/^(\d+)([a-z]+)$/);
+  if (!match) return resolution;
+  const amount = Number(match[1]);
+  const unit = match[2];
+  if (!Number.isFinite(amount) || amount <= 0) return resolution;
+  if (unit === 'd') return `${amount} Day${amount === 1 ? '' : 's'}`;
+  if (unit === 'h') return `${amount} Hour${amount === 1 ? '' : 's'}`;
+  if (unit === 'm') return `${amount} Minute${amount === 1 ? '' : 's'}`;
+  if (unit === 'w') return `${amount} Week${amount === 1 ? '' : 's'}`;
+  return resolution;
+}
+
+function renderPieLegendRow(label: string, percentage: number, volume: string, color: string): string {
+  return `<div class="token-supply-legend-item">
+    <span class="token-supply-legend-swatch" style="background:${color}"></span>
+    <div class="token-supply-legend-content">
+      <div class="token-supply-legend-label">${label}</div>
+      <ul class="token-supply-legend-sublist">
+        <li><span class="token-supply-legend-pct">${percentage.toFixed(2)}%</span> <span class="token-supply-legend-usd">(${volume})</span></li>
+      </ul>
+    </div>
+  </div>`;
+}
+
+function getTraderPnl(row: TokenTopPnlTraderRow): number {
+  return toNum(row.realizedPnlUsd) + toNum(row.unrealizedPnlUsd);
+}
+
+function formatUsdBucketValue(value: number): string {
+  const abs = Math.abs(value);
+  if (abs === 0) return '$0';
+  const core = abs < 1
+    ? abs.toFixed(2)
+    : Number.isInteger(abs)
+      ? abs.toLocaleString()
+      : abs.toFixed(2).replace(/\.?0+$/, '');
+  return `${value < 0 ? '-' : ''}$${core}`;
+}
+
+function buildTierEdges(maxAbs: number): number[] {
+  const edges = [0, 0.5, 1, 10, 100, 1000];
+  while (edges[edges.length - 1] < maxAbs) {
+    edges.push(edges[edges.length - 1] * 10);
+  }
+  return edges;
+}
+
+function renderPnlDistributionBars(rows: TokenTopPnlTraderRow[], topLimit: number, target: HTMLElement): void {
+  const limitN = Math.max(1, topLimit);
+  const values = rows
+    .slice(0, limitN)
+    .map((row) => getTraderPnl(row))
+    .filter((pnl) => Number.isFinite(pnl));
+
+  if (values.length === 0) {
+    target.innerHTML = '<div class="token-pnl-bar-label">No PnL data for current selection.</div>';
+    return;
+  }
+
+  const groups: { label: string; count: number; tone: 'positive' | 'negative' | 'neutral' }[] = [];
+  const positiveValues = values.filter((pnl) => pnl > 0);
+  const positiveEdges = buildTierEdges(Math.max(0, ...positiveValues));
+  for (let i = positiveEdges.length - 1; i >= 1; i--) {
+    const lower = positiveEdges[i - 1];
+    const upper = positiveEdges[i];
+    const count = positiveValues.filter((pnl) => pnl > lower && pnl <= upper).length;
+    if (count === 0) continue;
+    groups.push({
+      label: lower === 0
+        ? `> ${formatUsdBucketValue(0)} to ${formatUsdBucketValue(upper)}`
+        : `${formatUsdBucketValue(lower)} to ${formatUsdBucketValue(upper)}`,
+      count,
+      tone: 'positive',
+    });
+  }
+
+  const zeroCount = values.filter((pnl) => pnl === 0).length;
+  if (zeroCount > 0) groups.push({ label: '0', count: zeroCount, tone: 'neutral' });
+
+  const negativeValues = values.filter((pnl) => pnl < 0);
+  const negativeEdges = buildTierEdges(Math.max(0, ...negativeValues.map((pnl) => Math.abs(pnl))));
+  for (let i = 1; i < negativeEdges.length; i++) {
+    const upper = -negativeEdges[i - 1];
+    const lower = -negativeEdges[i];
+    const count = negativeValues.filter((pnl) => pnl >= lower && pnl < upper).length;
+    if (count === 0) continue;
+    groups.push({
+      label: upper === 0
+        ? `< ${formatUsdBucketValue(0)} to ${formatUsdBucketValue(lower)}`
+        : `${formatUsdBucketValue(lower)} to ${formatUsdBucketValue(upper)}`,
+      count,
+      tone: 'negative',
+    });
+  }
+
+  if (groups.length === 0) {
+    target.innerHTML = '<div class="token-pnl-bar-label">No non-zero PnL groups for current selection.</div>';
+    return;
+  }
+
+  const maxCount = Math.max(1, ...groups.map((g) => g.count));
+  target.innerHTML = groups
+    .map((group) => {
+      const widthPct = (group.count / maxCount) * 100;
+      return `<div class="token-pnl-bar-row">
+        <div class="token-pnl-bar-label">${group.label}</div>
+        <div class="token-pnl-bar-track">
+          <div class="token-pnl-bar-fill token-pnl-bar-fill--${group.tone}" style="width:${widthPct.toFixed(2)}%"></div>
+          <span class="token-pnl-bar-count">${group.count}</span>
+        </div>
+      </div>`;
+    })
+    .join('');
 }
 
 function renderTopTraderVolumeCharts(rows: TokenTopPnlTraderRow[], topLimit: number, token: TokenData | null): void {
@@ -457,29 +570,12 @@ function renderTopTraderVolumeCharts(rows: TokenTopPnlTraderRow[], topLimit: num
   )`;
 
   tokenSupplyLegend.innerHTML = `
-    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#3b82f6"></span><span>Top 10 traders ${top10Slice.toFixed(2)}% (${formatUsdFull(top10Vol)})</span></div>
-    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#2563eb"></span><span>Top 11-100 traders ${top11to100Slice.toFixed(2)}% (${formatUsdFull(top11to100Vol)})</span></div>
-    ${showTop101Bucket ? `<div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#1d4ed8"></span><span>Top 101-${limitN.toLocaleString()} traders ${top101toNSlice.toFixed(2)}% (${formatUsdFull(top101toNVol)})</span></div>` : ''}
-    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#27272a"></span><span>Non-top traders ${remainingSlice.toFixed(2)}% (${formatUsdFull(remainingVol)})</span></div>
+    ${renderPieLegendRow('Top 10 traders', top10Slice, formatUsdFull(top10Vol), '#3b82f6')}
+    ${renderPieLegendRow('Top 11-100 traders', top11to100Slice, formatUsdFull(top11to100Vol), '#2563eb')}
+    ${showTop101Bucket ? renderPieLegendRow(`Top 101-${limitN.toLocaleString()} traders`, top101toNSlice, formatUsdFull(top101toNVol), '#1d4ed8') : ''}
+    ${renderPieLegendRow('Non-top traders', remainingSlice, formatUsdFull(remainingVol), '#27272a')}
   `;
-
-  const labeledTopNVol = volumeRows.reduce((acc, row) => acc + (isLabeledTrader(row) ? toNum(row.totalVolumeUsd) : 0), 0);
-  const unlabeledTopNVol = Math.max(0, topNVol - labeledTopNVol);
-  const labeledSlice = Math.max(0, Math.min(100, (labeledTopNVol / denominatorUsd) * 100));
-  const unlabeledTopNSlice = Math.max(0, Math.min(100, (unlabeledTopNVol / denominatorUsd) * 100));
-  const nonTopNSlice = Math.max(0, Math.min(100, (remainingVol / denominatorUsd) * 100));
-  const labeledDeg = labeledSlice * 3.6;
-  const unlabeledTopDeg = (labeledSlice + unlabeledTopNSlice) * 3.6;
-  tokenLabelSupplyPie.style.background = `conic-gradient(
-    #3b82f6 0deg ${labeledDeg}deg,
-    #1d4ed8 ${labeledDeg}deg ${unlabeledTopDeg}deg,
-    #27272a ${unlabeledTopDeg}deg 360deg
-  )`;
-  tokenLabelSupplyLegend.innerHTML = `
-    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#3b82f6"></span><span>Labeled top ${limitN.toLocaleString()} volume ${labeledSlice.toFixed(2)}% (${formatUsdFull(labeledTopNVol)})</span></div>
-    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#1d4ed8"></span><span>Unlabeled top ${limitN.toLocaleString()} volume ${unlabeledTopNSlice.toFixed(2)}% (${formatUsdFull(unlabeledTopNVol)})</span></div>
-    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#27272a"></span><span>Non-top ${limitN.toLocaleString()} volume ${nonTopNSlice.toFixed(2)}% (${formatUsdFull(remainingVol)})</span></div>
-  `;
+  renderPnlDistributionBars(rows, topLimit, tokenPnlBars24h);
 }
 
 function renderTopTraderSelectedResolutionCharts(rows: TokenTopPnlTraderRow[], topLimit: number): void {
@@ -495,37 +591,29 @@ function renderTopTraderSelectedResolutionCharts(rows: TokenTopPnlTraderRow[], t
   const top10Slice = Math.max(0, Math.min(100, (top10Vol / denominatorUsd) * 100));
   const top11to100Slice = Math.max(0, Math.min(100, (top11to100Vol / denominatorUsd) * 100));
   const top101toNSlice = showTop101Bucket ? Math.max(0, Math.min(100, (top101toNVol / denominatorUsd) * 100)) : 0;
-  const remainingSlice = Math.max(0, 100 - (top10Slice + top11to100Slice + top101toNSlice));
+  const resolutionLabel = formatResolutionSectionLabel(tokenTopPnlResolution.value);
+  tokenSupplySelectedTitle.textContent = resolutionLabel;
+  tokenPnlSelectedTitle.textContent = `PnL distribution (${resolutionLabel.toLowerCase()} resolution)`;
 
   const a = top10Slice * 3.6;
   const b = (top10Slice + top11to100Slice) * 3.6;
   const c = (top10Slice + top11to100Slice + top101toNSlice) * 3.6;
-  tokenSupplyPieTotal.style.background = `conic-gradient(
+  tokenSupplyPieTotal.style.background = showTop101Bucket
+    ? `conic-gradient(
     #3b82f6 0deg ${a}deg,
     #2563eb ${a}deg ${b}deg,
-    #1d4ed8 ${b}deg ${c}deg,
-    #27272a ${c}deg 360deg
+    #1d4ed8 ${b}deg ${c}deg
+  )`
+    : `conic-gradient(
+    #3b82f6 0deg ${a}deg,
+    #2563eb ${a}deg 360deg
   )`;
   tokenSupplyLegendTotal.innerHTML = `
-    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#3b82f6"></span><span>Top 10 traders ${top10Slice.toFixed(2)}% (${formatUsdFull(top10Vol)})</span></div>
-    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#2563eb"></span><span>Top 11-100 traders ${top11to100Slice.toFixed(2)}% (${formatUsdFull(top11to100Vol)})</span></div>
-    ${showTop101Bucket ? `<div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#1d4ed8"></span><span>Top 101-${limitN.toLocaleString()} traders ${top101toNSlice.toFixed(2)}% (${formatUsdFull(top101toNVol)})</span></div>` : ''}
-    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#27272a"></span><span>Other top ${limitN.toLocaleString()} volume ${remainingSlice.toFixed(2)}%</span></div>
+    ${renderPieLegendRow('Top 10 traders', top10Slice, formatUsdFull(top10Vol), '#3b82f6')}
+    ${renderPieLegendRow('Top 11-100 traders', top11to100Slice, formatUsdFull(top11to100Vol), '#2563eb')}
+    ${showTop101Bucket ? renderPieLegendRow(`Top 101-${limitN.toLocaleString()} traders`, top101toNSlice, formatUsdFull(top101toNVol), '#1d4ed8') : ''}
   `;
-
-  const labeledTopNVol = volumeRows.reduce((acc, row) => acc + (isLabeledTrader(row) ? toNum(row.totalVolumeUsd) : 0), 0);
-  const unlabeledTopNVol = Math.max(0, topNVol - labeledTopNVol);
-  const labeledSlice = topNVol > 0 ? Math.max(0, Math.min(100, (labeledTopNVol / denominatorUsd) * 100)) : 0;
-  const unlabeledTopNSlice = topNVol > 0 ? Math.max(0, 100 - labeledSlice) : 0;
-  const labeledDeg = labeledSlice * 3.6;
-  tokenLabelSupplyPieTotal.style.background = `conic-gradient(
-    #3b82f6 0deg ${labeledDeg}deg,
-    #1d4ed8 ${labeledDeg}deg 360deg
-  )`;
-  tokenLabelSupplyLegendTotal.innerHTML = `
-    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#3b82f6"></span><span>Labeled top ${limitN.toLocaleString()} volume ${labeledSlice.toFixed(2)}% (${formatUsdFull(labeledTopNVol)})</span></div>
-    <div class="token-supply-legend-item"><span class="token-supply-legend-swatch" style="background:#1d4ed8"></span><span>Unlabeled top ${limitN.toLocaleString()} volume ${unlabeledTopNSlice.toFixed(2)}% (${formatUsdFull(unlabeledTopNVol)})</span></div>
-  `;
+  renderPnlDistributionBars(rows, topLimit, tokenPnlBarsTotal);
 }
 
 async function loadData(): Promise<void> {
@@ -593,9 +681,9 @@ async function loadData(): Promise<void> {
         renderTopTraderSelectedResolutionCharts(tokenTopPnlData.data ?? [], chartLimit);
       } else {
         tokenSupplyLegend.innerHTML = '';
-        tokenLabelSupplyLegend.innerHTML = '';
+        tokenPnlBars24h.innerHTML = '';
         tokenSupplyLegendTotal.innerHTML = '';
-        tokenLabelSupplyLegendTotal.innerHTML = '';
+        tokenPnlBarsTotal.innerHTML = '';
         showSectionError(tokenTopPnlError, `Failed (${tokenTopPnlRes.status})`);
       }
     } else {
@@ -626,6 +714,15 @@ fetchAllBtn.addEventListener('click', () => {
   void loadData();
 });
 
+tokenTopPnlResolution.addEventListener('change', () => {
+  const resolutionLabel = formatResolutionSectionLabel(tokenTopPnlResolution.value);
+  tokenSupplySelectedTitle.textContent = resolutionLabel;
+  tokenPnlSelectedTitle.textContent = `PnL distribution (${resolutionLabel.toLowerCase()} resolution)`;
+});
+
+const initialResolutionLabel = formatResolutionSectionLabel(tokenTopPnlResolution.value);
+tokenSupplySelectedTitle.textContent = initialResolutionLabel;
+tokenPnlSelectedTitle.textContent = `PnL distribution (${initialResolutionLabel.toLowerCase()} resolution)`;
 setSearchMode(getSearchMode());
 if (!mintInput.value.trim()) mintInput.value = DEMO_MINT;
 applySearchModeUI();

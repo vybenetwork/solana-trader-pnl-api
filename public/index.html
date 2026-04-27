@@ -255,10 +255,13 @@
     </section>
 
     <section class="panel token-supply-panel" id="tokenSupplyPanel">
+      <div class="section-header token-supply-period-header">
+        <h2 class="token-supply-period-title">24 Hours</h2>
+      </div>
       <div class="token-supply-grid">
         <div class="token-supply-card">
           <div class="section-header">
-            <h2>Top traders volume vs 24h token volume</h2>
+            <h2>Top traders volume split</h2>
           </div>
           <div class="token-supply-wrap">
             <div class="token-supply-pie" id="tokenSupplyPie" aria-label="Top trader volume distribution pie chart"></div>
@@ -268,21 +271,22 @@
 
         <div class="token-supply-card">
           <div class="section-header token-supply-subheader">
-            <h2>Labeled vs unlabeled top trader volume</h2>
+            <h2>PnL distribution (24h fetch)</h2>
           </div>
-          <div class="token-supply-wrap">
-            <div class="token-supply-pie" id="tokenLabelSupplyPie" aria-label="Labeled vs unlabeled top trader volume pie chart"></div>
-            <div class="token-supply-legend" id="tokenLabelSupplyLegend"></div>
+          <div class="token-pnl-bars" id="tokenPnlBars24h" aria-label="PnL distribution groups for 24h fetch">
           </div>
         </div>
       </div>
     </section>
 
     <section class="panel token-supply-panel" id="tokenSupplyPanelTotal">
+      <div class="section-header token-supply-period-header">
+        <h2 class="token-supply-period-title" id="tokenSupplySelectedTitle">30 Days</h2>
+      </div>
       <div class="token-supply-grid">
         <div class="token-supply-card">
           <div class="section-header">
-            <h2>Top traders volume split (selected resolution)</h2>
+            <h2>Top traders volume split</h2>
           </div>
           <div class="token-supply-wrap">
             <div class="token-supply-pie" id="tokenSupplyPieTotal" aria-label="Top trader total volume split pie chart"></div>
@@ -292,11 +296,9 @@
 
         <div class="token-supply-card">
           <div class="section-header token-supply-subheader">
-            <h2>Labeled vs unlabeled volume (selected resolution)</h2>
+            <h2 id="tokenPnlSelectedTitle">PnL distribution (30 days resolution)</h2>
           </div>
-          <div class="token-supply-wrap">
-            <div class="token-supply-pie" id="tokenLabelSupplyPieTotal" aria-label="Labeled vs unlabeled selected-resolution volume pie chart"></div>
-            <div class="token-supply-legend" id="tokenLabelSupplyLegendTotal"></div>
+          <div class="token-pnl-bars" id="tokenPnlBarsTotal" aria-label="PnL distribution groups for selected resolution fetch">
           </div>
         </div>
       </div>
@@ -367,6 +369,6 @@
       <pre id="errorText"></pre>
     </section>
   </div>
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
