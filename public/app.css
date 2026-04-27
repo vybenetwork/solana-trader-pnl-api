@@ -901,8 +901,7 @@ button:active {
   display: grid;
   grid-template-columns: repeat(10, minmax(0, 1fr));
   gap: 0.65rem;
-  align-items: end;
-  min-height: 300px;
+  align-items: start;
 }
 
 .token-trades-vertical-bar-item {
