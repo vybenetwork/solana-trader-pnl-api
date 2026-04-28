@@ -1133,8 +1133,29 @@ button:active {
 
 .wallet-pnl-sections {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
   gap: 1rem;
+}
+
+.wallet-pnl-layout {
+  display: grid;
+  grid-template-columns: 1fr minmax(280px, 340px);
+  gap: 1rem;
+}
+
+.wallet-pnl-trend-col {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 1080px) {
+  .wallet-pnl-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .wallet-pnl-sections {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
 }
 
 .wallet-pnl-token-grid {
@@ -1166,6 +1187,48 @@ button:active {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+}
+
+.wallet-token-highlight-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.wallet-token-highlight-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.wallet-token-highlight-pnl {
+  color: #e4e4e7;
+  font-weight: 600;
+}
+
+.wallet-token-highlight-sublist {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.wallet-token-highlight-sublist li {
+  margin: 0.08rem 0;
+  overflow-wrap: anywhere;
+}
+
+.wallet-token-highlight-sublist li > span {
+  color: #a1a1aa;
+}
+
+.wallet-token-highlight-pnl--positive {
+  color: #86efac;
+}
+
+.wallet-token-highlight-pnl--negative {
+  color: #fca5a5;
 }
 
 .wallet-assets-table-wrap {

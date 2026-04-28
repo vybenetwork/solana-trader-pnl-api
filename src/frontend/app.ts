@@ -426,14 +426,13 @@ function renderSignaturePopupLink(signature: string | null | undefined, label = 
   const sig = (signature || '').trim();
   if (!sig) return '—';
   const href = `https://solscan.io/tx/${encodeURIComponent(sig)}`;
-  const short = truncateAddress(sig);
   const lowerLabel = label.toLowerCase();
   const toneClass = lowerLabel.includes('buy')
     ? 'wallet-tx-tone--buy'
     : lowerLabel.includes('sell')
       ? 'wallet-tx-tone--sell'
       : '';
-  return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="wallet-tx-link ${toneClass}" title="${sig}" onclick="window.open(this.href,'solscanTx','popup=yes,width=1100,height=780,noopener,noreferrer'); return false;">${label}<span class="wallet-tx-popup-icon" aria-hidden="true">↗</span></a><div class="mono wallet-tx-sig ${toneClass}" title="${sig}">${short}</div>`;
+  return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="wallet-tx-link ${toneClass}" title="${sig}" onclick="window.open(this.href,'solscanTx','popup=yes,width=1100,height=780,noopener,noreferrer'); return false;">${label}<span class="wallet-tx-popup-icon" aria-hidden="true">↗</span></a>`;
 }
 
 function renderLatestTradeCell(
@@ -485,6 +484,118 @@ function renderStatusBadge(status: string | null | undefined): string {
     return '<span class="wallet-status-badge wallet-status-badge--closed">closed</span>';
   }
   return `<span class="wallet-status-badge">${value}</span>`;
+}
+
+function buildWalletPnlPlaceholder(): string {
+  const dummyAssetRows = Array.from({ length: 5 }, () => `<tr>
+        <td class="wallet-asset-icon-cell">${renderLogoImage(undefined, 'placeholder')}</td>
+        <td>—</td>
+        <td>—</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right"><span class="wallet-amt-vol-usd">—</span></td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right"><span class="wallet-amt-vol-usd">—</span></td>
+        <td class="wallet-asset-tx-cell">—</td>
+      </tr>`).join('');
+
+  return `<div class="wallet-pnl-layout">
+    <div class="wallet-pnl-sections">
+      <section class="token-stats-group">
+        <h3 class="token-stats-group-title"><span>Wallet profile</span></h3>
+        <dl class="token-stats">
+          <dt>Name</dt><dd>—</dd>
+          <dt>Logo</dt><dd>${renderLogoImage(undefined, 'placeholder')}</dd>
+          <dt>X Profile</dt><dd>—</dd>
+          <dt>Labels</dt><dd>—</dd>
+        </dl>
+      </section>
+      <section class="token-stats-group">
+        <h3 class="token-stats-group-title"><span>PnL performance</span></h3>
+        <dl class="token-stats">
+          <dt>Realized PnL</dt><dd>—</dd>
+          <dt>Unrealized PnL</dt><dd>—</dd>
+          <dt>Win rate</dt><dd>—</dd>
+          <dt>7d PnL points</dt><dd>—</dd>
+        </dl>
+      </section>
+      <section class="token-stats-group">
+        <h3 class="token-stats-group-title"><span>Token highlights</span></h3>
+        <dl class="token-stats">
+          <dt>Best token</dt><dd>—</dd>
+          <dt>Worst token</dt><dd>—</dd>
+        </dl>
+      </section>
+      <section class="token-stats-group">
+        <h3 class="token-stats-group-title"><span>Trading stats</span></h3>
+        <dl class="token-stats">
+          <dt>Trades</dt><dd>—</dd>
+          <dt>Trade volume</dt><dd>—</dd>
+          <dt>Avg trade</dt><dd>—</dd>
+          <dt>Winning trades</dt><dd>—</dd>
+          <dt>Losing trades</dt><dd>—</dd>
+          <dt>Unique tokens</dt><dd>—</dd>
+        </dl>
+      </section>
+    </div>
+    <div class="wallet-pnl-trend-col">
+      <section class="token-stats-group">
+        <h3 class="token-stats-group-title"><span>7d PnL trend points</span></h3>
+        <div class="table-wrap">
+          <table class="wallet-trend-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th style="text-align:right">PnL</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>—</td><td style="text-align:right">—</td></tr>
+              <tr><td>—</td><td style="text-align:right">—</td></tr>
+              <tr><td>—</td><td style="text-align:right">—</td></tr>
+              <tr><td>—</td><td style="text-align:right">—</td></tr>
+              <tr><td>—</td><td style="text-align:right">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+  <section class="token-stats-group">
+    <h3 class="token-stats-group-title"><span>Assets</span></h3>
+    <div class="table-wrap wallet-assets-table-wrap">
+      <table class="wallet-assets-table">
+        <thead>
+          <tr>
+            <th>Icon</th>
+            <th>Asset</th>
+            <th>Status</th>
+            <th style="text-align:right">Real. PnL</th>
+            <th style="text-align:right">Unreal. PnL</th>
+            <th style="text-align:right">Buys</th>
+            <th style="text-align:right">Sells</th>
+            <th style="text-align:right">Buy amt</th>
+            <th style="text-align:right">Buy vol</th>
+            <th style="text-align:right">Sell amt</th>
+            <th style="text-align:right">Sell vol</th>
+            <th>Latest TX</th>
+          </tr>
+        </thead>
+        <tbody>${dummyAssetRows}</tbody>
+      </table>
+    </div>
+  </section>`;
+}
+
+function renderXProfileLink(url: string | null | undefined): string {
+  const href = (url || '').trim();
+  if (!href) return '—';
+  const match = href.match(/x\.com\/([^/?#]+)/i) || href.match(/twitter\.com\/([^/?#]+)/i);
+  const handle = match?.[1] ? `@${match[1]}` : href;
+  return `<a href="${href}" target="_blank" rel="noopener noreferrer">${handle}</a>`;
 }
 
 function applyTokenTopPnl24hColumnVisibility(): void {
@@ -716,14 +827,25 @@ function renderWalletPnl(
     return `<span class="wallet-token-ref">${renderLogoImage(logoUrl, symbol)}<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener noreferrer" class="mono" title="${mint}">${symbol}</a></span>`;
   };
 
+  const renderTokenHighlightDetails = (token?: WalletPnlSummaryTokenRef): string => {
+    if (!token?.mintAddress) return '—';
+    const pnl = token.pnlUsd;
+    const pnlToneClass = pnl != null && pnl < 0 ? 'wallet-token-highlight-pnl--negative' : 'wallet-token-highlight-pnl--positive';
+    return `<div class="wallet-token-highlight-wrap">
+      <div class="wallet-token-highlight-main">${tokenLabel(token)}</div>
+      <ul class="wallet-token-highlight-sublist">
+        <li class="${pnlToneClass}">${pnl != null ? formatUsdFull(pnl) : '—'}</li>
+      </ul>
+    </div>`;
+  };
+
   const profileLabels = (topTraderRow?.accountLabels ?? []).filter((label) => (label || '').trim() !== '');
   const walletProfileHtml = `<section class="token-stats-group">
       <h3 class="token-stats-group-title"><span>Wallet profile</span></h3>
       <dl class="token-stats">
-        <dt>Account</dt><dd><a href="https://vybe.fyi/wallets/${encodeURIComponent(ownerAddress)}" target="_blank" rel="noopener noreferrer" class="mono" title="${ownerAddress}">${topTraderRow?.accountName || truncateAddress(ownerAddress)}</a></dd>
-        <dt>Name</dt><dd>${topTraderRow?.accountName || '—'}</dd>
+        <dt>Name</dt><dd><a href="https://vybe.fyi/wallets/${encodeURIComponent(ownerAddress)}" target="_blank" rel="noopener noreferrer" class="mono" title="${ownerAddress}">${topTraderRow?.accountName || truncateAddress(ownerAddress)}</a></dd>
         <dt>Logo</dt><dd>${renderLogoImage(topTraderRow?.accountLogoUrl, topTraderRow?.accountName || ownerAddress)}</dd>
-        <dt>X (Twitter)</dt><dd>${topTraderRow?.accountTwitterUrl ? `<a href="${topTraderRow.accountTwitterUrl}" target="_blank" rel="noopener noreferrer">${topTraderRow.accountTwitterUrl}</a>` : '—'}</dd>
+        <dt>X Profile</dt><dd>${renderXProfileLink(topTraderRow?.accountTwitterUrl)}</dd>
         <dt>Labels</dt><dd>${profileLabels.length ? profileLabels.join(', ') : '—'}</dd>
       </dl>
     </section>`;
@@ -753,8 +875,8 @@ function renderWalletPnl(
   const tokenHighlightsHtml = `<section class="token-stats-group">
       <h3 class="token-stats-group-title"><span>Token highlights</span></h3>
       <dl class="token-stats">
-        <dt>Best token</dt><dd>${tokenLabel(mergedSummary.bestPerformingToken)}${mergedSummary.bestPerformingToken?.pnlUsd != null ? ` (${formatUsdFull(mergedSummary.bestPerformingToken.pnlUsd)})` : ''}</dd>
-        <dt>Worst token</dt><dd>${tokenLabel(mergedSummary.worstPerformingToken)}${mergedSummary.worstPerformingToken?.pnlUsd != null ? ` (${formatUsdFull(mergedSummary.worstPerformingToken.pnlUsd)})` : ''}</dd>
+        <dt>Best token</dt><dd>${renderTokenHighlightDetails(mergedSummary.bestPerformingToken)}</dd>
+        <dt>Worst token</dt><dd>${renderTokenHighlightDetails(mergedSummary.worstPerformingToken)}</dd>
       </dl>
     </section>`;
 
@@ -836,7 +958,10 @@ function renderWalletPnl(
     </section>`
     : '<div class="token-stats-group wallet-pnl-empty">No token metrics returned for this wallet and filter.</div>';
 
-  walletPnlDetails.innerHTML = `<div class="wallet-pnl-sections">${walletProfileHtml}${performanceHtml}${tradingStatsHtml}${tokenHighlightsHtml}${pnlTrendHtml}</div>${assetsTableHtml}`;
+  walletPnlDetails.innerHTML = `<div class="wallet-pnl-layout">
+    <div class="wallet-pnl-sections">${walletProfileHtml}${performanceHtml}${tokenHighlightsHtml}${tradingStatsHtml}</div>
+    <div class="wallet-pnl-trend-col">${pnlTrendHtml}</div>
+  </div>${assetsTableHtml}`;
 }
 
 function buildTokenTopPnlParams(): URLSearchParams {
@@ -1822,14 +1947,6 @@ applySelectedTradesVerticalRowVisibility();
 topTradersMeta.hidden = true;
 topTradersCards.hidden = true;
 walletPnlMeta.textContent = '—';
-walletPnlDetails.innerHTML = `<section class="token-stats-group">
-  <h3 class="token-stats-group-title"><span>Wallet PnL summary</span></h3>
-  <dl class="token-stats">
-    <dt>Realized PnL</dt><dd>—</dd>
-    <dt>Unrealized PnL</dt><dd>—</dd>
-    <dt>Trades</dt><dd>—</dd>
-    <dt>Win rate</dt><dd>—</dd>
-  </dl>
-</section>`;
+walletPnlDetails.innerHTML = buildWalletPnlPlaceholder();
 tokenTopPnlBody.innerHTML = '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="token-top-pnl-24h-col">—</td><td>—</td><td class="token-top-pnl-24h-col">—</td></tr>';
 applyTokenTopPnl24hColumnVisibility();
