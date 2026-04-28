@@ -613,6 +613,16 @@ function renderWalletPnl(
       .map((metric) => [(metric.mintAddress || '').trim(), metric] as const)
       .filter(([mint]) => mint.length > 0)
   );
+  const buysTxValues = tokenMetrics
+    .map((metric) => toNum(metric.buys?.transactionCount))
+    .filter((value) => Number.isFinite(value));
+  const buysTxMin = buysTxValues.length ? Math.min(...buysTxValues) : 0;
+  const buysTxMax = buysTxValues.length ? Math.max(...buysTxValues) : 0;
+  const sellsTxValues = tokenMetrics
+    .map((metric) => toNum(metric.sells?.transactionCount))
+    .filter((value) => Number.isFinite(value));
+  const sellsTxMin = sellsTxValues.length ? Math.min(...sellsTxValues) : 0;
+  const sellsTxMax = sellsTxValues.length ? Math.max(...sellsTxValues) : 0;
 
   const tokenLabel = (token?: WalletPnlSummaryTokenRef): string => {
     if (!token) return '—';
@@ -700,8 +710,8 @@ function renderWalletPnl(
         <td>${metric.status ?? '—'}</td>
         <td style="text-align:right">${formatUsdCell(metric.realizedPnlUsd)}</td>
         <td style="text-align:right">${formatUsdCell(metric.unrealizedPnlUsd)}</td>
-        <td style="text-align:right">${formatTradesCountCell(metric.buys?.transactionCount)}</td>
-        <td style="text-align:right">${formatTradesCountCell(metric.sells?.transactionCount)}</td>
+        <td style="text-align:right">${formatTradesCountHeatCell(metric.buys?.transactionCount, buysTxMin, buysTxMax)}</td>
+        <td style="text-align:right">${formatTradesCountHeatCell(metric.sells?.transactionCount, sellsTxMin, sellsTxMax)}</td>
         <td style="text-align:right">${formatUsdCell(metric.buys?.volumeUsd)}</td>
         <td style="text-align:right">${formatUsdCell(metric.sells?.volumeUsd)}</td>
       </tr>`;
