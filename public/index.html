@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Solana Top Traders Wallets & Tokens</title>
-  <link rel="stylesheet" href="app.css?v=42" />
+  <link rel="stylesheet" href="app.css?v=46" />
 </head>
 <body>
   <div class="container">
@@ -389,22 +389,25 @@
       </div>
       <div class="top-traders-content">
         <p class="meta" id="tokenTopPnlMeta">—</p>
-        <div class="table-wrap">
-          <table id="tokenTopPnlTable">
-            <thead>
-              <tr>
-                <th style="text-align: left">#</th>
-                <th style="text-align: left">Trader</th>
-                <th id="tokenTopPnlRealizedHeader" style="text-align: right">Realized PnL (30d)</th>
-                <th id="tokenTopPnlUnrealizedHeader" style="text-align: right">Unrealized PnL (30d)</th>
-                <th id="tokenTopPnlVolumeHeader" style="text-align: right">Volume (30d)</th>
-                <th id="tokenTopPnl24hVolumeHeader" style="text-align: right">Volume (24h)</th>
-                <th id="tokenTopPnlTradesHeader" style="text-align: right">Trades (30d)</th>
-                <th id="tokenTopPnl24hTradesHeader" style="text-align: right">Trades (24h)</th>
-              </tr>
-            </thead>
-            <tbody id="tokenTopPnlBody"></tbody>
-          </table>
+        <div class="token-stats-group token-top-pnl-table-card">
+          <h3 class="token-stats-group-title"><span>Top PnL traders</span></h3>
+          <div class="table-wrap">
+            <table id="tokenTopPnlTable">
+              <thead>
+                <tr>
+                  <th style="text-align: left">#</th>
+                  <th style="text-align: left">Trader</th>
+                  <th id="tokenTopPnlRealizedHeader" style="text-align: right">Realized PnL (30d)</th>
+                  <th id="tokenTopPnlUnrealizedHeader" style="text-align: right">Unrealized PnL (30d)</th>
+                  <th id="tokenTopPnlVolumeHeader" style="text-align: right">Volume (30d)</th>
+                  <th id="tokenTopPnl24hVolumeHeader" style="text-align: right">Volume (24h)</th>
+                  <th id="tokenTopPnlTradesHeader" style="text-align: right">Trades (30d)</th>
+                  <th id="tokenTopPnl24hTradesHeader" style="text-align: right">Trades (24h)</th>
+                </tr>
+              </thead>
+              <tbody id="tokenTopPnlBody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
@@ -414,6 +417,6 @@
       <pre id="errorText"></pre>
     </section>
   </div>
-  <script src="app.js?v=48"></script>
+  <script src="app.js?v=49"></script>
 </body>
 </html>
