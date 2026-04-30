@@ -1144,7 +1144,7 @@ function renderWalletPnl(
       { label: 'Losing trades', value: lose, color: '#ef4444' },
     ];
     if (remainder > 0) {
-      slices.push({ label: 'Other', value: remainder, color: '#94a3b8' });
+      slices.push({ label: 'Still Open', value: remainder, color: '#94a3b8' });
     }
     return slices;
   })();
