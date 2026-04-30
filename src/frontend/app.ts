@@ -292,6 +292,27 @@ function truncateAddress(addr: string | undefined): string {
   return `${addr.slice(0, 4)}....${addr.slice(-4)}`;
 }
 
+const TOKEN_HIGHLIGHT_NAME_MAX_LEN = 12;
+
+function escapeHtmlAttr(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function truncateTokenHighlightLinkText(text: string): string {
+  const t = text.trim();
+  if (t.length <= TOKEN_HIGHLIGHT_NAME_MAX_LEN) return t;
+  return `${t.slice(0, TOKEN_HIGHLIGHT_NAME_MAX_LEN)}...`;
+}
+
+function renderTruncatedTokenMintLink(token: WalletPnlSummaryTokenRef, pnlUsd?: number): string {
+  const mint = (token.mintAddress || '').trim();
+  if (!mint) return '—';
+  const raw = token.tokenSymbol || token.tokenName || truncateAddress(mint);
+  const titleAttr = escapeHtmlAttr(`${raw} · ${mint}`);
+  const pnlPart = pnlUsd != null ? ` (${formatUsdFull(pnlUsd)})` : '';
+  return `<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener noreferrer" class="mono" title="${titleAttr}">${truncateTokenHighlightLinkText(raw)}</a>${pnlPart}`;
+}
+
 function formatNum(n: number | string | null | undefined): string {
   if (n == null) return '—';
   if (typeof n === 'number') {
@@ -883,6 +904,56 @@ function renderToken(t: TokenData): void {
     sectionHtml(metaSection);
 }
 
+/** Same sections/labels as `renderToken`, values shown as em dash until data loads. */
+function buildTokenStatsPlaceholderHtml(): string {
+  const dash = '—';
+  const sectionHtml = (s: SectionSpec): string => `<section class="token-stats-group">
+      <h3 class="token-stats-group-title">${s.icon}<span>${s.title}</span></h3>
+      <dl class="token-stats">${s.rows.map(([label, value]) => `<dt>${label}</dt><dd>${value ?? dash}</dd>`).join('')}</dl>
+    </section>`;
+  const overview: SectionSpec = {
+    icon: tokenSectionIcons.overview,
+    title: 'Overview',
+    rows: [
+      ['Mint', `<span class="mono">${dash}</span>`],
+      ['Symbol', dash],
+      ['Decimals', dash],
+      ['Category', dash],
+      ['Subcategory', dash],
+      ['Verified', dash],
+    ],
+  };
+  const priceSection: SectionSpec = {
+    icon: tokenSectionIcons.price,
+    title: 'Price & market cap',
+    rows: [
+      ['Price (USD)', dash],
+      ['Market cap', dash],
+      ['Price (1d ago)', dash],
+      ['Price (7d ago)', dash],
+    ],
+  };
+  const supplyVolumeSection: SectionSpec = {
+    icon: tokenSectionIcons.supply,
+    title: 'Supply & volume (24h)',
+    rows: [
+      ['Current supply', dash],
+      ['Token volume (24h)', dash],
+      ['USD volume (24h)', dash],
+    ],
+  };
+  const metaSection: SectionSpec = {
+    icon: tokenSectionIcons.meta,
+    title: 'Last updated',
+    rows: [['Update time', dash]],
+  };
+  return (
+    sectionHtml(overview) +
+    `<div class="token-stats-row"><div class="token-stats-col">${sectionHtml(priceSection)}</div><div class="token-stats-col">${sectionHtml(supplyVolumeSection)}</div></div>` +
+    sectionHtml(metaSection)
+  );
+}
+
 function buildWalletTopTraderParams(mode: SearchMode, query: string): URLSearchParams {
   const params = new URLSearchParams({
     resolution: getWalletResolution(),
@@ -958,9 +1029,16 @@ function renderWalletPnl(
     const mint = (token.mintAddress || '').trim();
     if (!mint) return '—';
     const matchedMetric = metricsByMint.get(mint);
-    const symbol = matchedMetric?.tokenSymbol || matchedMetric?.tokenName || token.tokenSymbol || token.tokenName || truncateAddress(mint);
+    const fullLabel =
+      matchedMetric?.tokenSymbol ||
+      matchedMetric?.tokenName ||
+      token.tokenSymbol ||
+      token.tokenName ||
+      truncateAddress(mint);
+    const linkText = truncateTokenHighlightLinkText(fullLabel);
     const logoUrl = matchedMetric?.tokenLogoUrl || token.tokenLogoUrl;
-    return `<span class="wallet-token-ref">${renderLogoImage(logoUrl, symbol, mint)}<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener noreferrer" class="mono" title="${mint}">${symbol}</a></span>`;
+    const titleAttr = escapeHtmlAttr(`${fullLabel} · ${mint}`);
+    return `<span class="wallet-token-ref">${renderLogoImage(logoUrl, fullLabel, mint)}<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener noreferrer" class="mono" title="${titleAttr}">${linkText}</a></span>`;
   };
 
   const renderWalletPnlHighlightCard = (kind: 'best' | 'worst', token?: WalletPnlSummaryTokenRef): string => {
@@ -1250,12 +1328,8 @@ function renderTopTraders(
       const labels = (row.accountLabels ?? []).filter((label) => (label || '').trim() !== '');
       const bestToken = m.bestPerformingToken;
       const worstToken = m.worstPerformingToken;
-      const bestTokenLabel = bestToken?.mintAddress
-        ? `<a href="https://vybe.fyi/tokens/${encodeURIComponent(bestToken.mintAddress)}" target="_blank" rel="noopener noreferrer" class="mono" title="${bestToken.mintAddress}">${bestToken.tokenSymbol || bestToken.tokenName || truncateAddress(bestToken.mintAddress)}</a>${bestToken.pnlUsd != null ? ` (${formatUsdFull(bestToken.pnlUsd)})` : ''}`
-        : '—';
-      const worstTokenLabel = worstToken?.mintAddress
-        ? `<a href="https://vybe.fyi/tokens/${encodeURIComponent(worstToken.mintAddress)}" target="_blank" rel="noopener noreferrer" class="mono" title="${worstToken.mintAddress}">${worstToken.tokenSymbol || worstToken.tokenName || truncateAddress(worstToken.mintAddress)}</a>${worstToken.pnlUsd != null ? ` (${formatUsdFull(worstToken.pnlUsd)})` : ''}`
-        : '—';
+      const bestTokenLabel = bestToken?.mintAddress ? renderTruncatedTokenMintLink(bestToken, bestToken.pnlUsd) : '—';
+      const worstTokenLabel = worstToken?.mintAddress ? renderTruncatedTokenMintLink(worstToken, worstToken.pnlUsd) : '—';
       return `<section class="token-stats-group wallet-top-trader-card">
         <h3 class="token-stats-group-title"><span>#${rank} Trader</span></h3>
         <dl class="token-stats">
@@ -1414,6 +1488,104 @@ function renderPieLegendRow(label: string, percentage: number, volume: string, c
   </div>`;
 }
 
+function renderPieLegendRowPlaceholder(label: string, color: string): string {
+  const dash = '—';
+  return `<div class="token-supply-legend-item">
+    <span class="token-supply-legend-swatch" style="background:${color}"></span>
+    <div class="token-supply-legend-content">
+      <div class="token-supply-legend-label">${label}</div>
+      <ul class="token-supply-legend-sublist">
+        <li><span class="token-supply-legend-pct">${dash}</span> <span class="token-supply-legend-usd">(${dash})</span></li>
+      </ul>
+    </div>
+  </div>`;
+}
+
+function buildTokenPnlBarPlaceholderRow(
+  fillClass: 'positive' | 'negative' | 'neutral' | 'trade-scale',
+  tradeGradT = 0.5
+): string {
+  const dash = '—';
+  const style =
+    fillClass === 'trade-scale'
+      ? `width:0%; --trade-grad-t:${tradeGradT.toFixed(4)};`
+      : 'width:0%;';
+  return `<div class="token-pnl-bar-row">
+    <div class="token-pnl-bar-label">${dash}</div>
+    <div class="token-pnl-bar-track">
+      <div class="token-pnl-bar-fill token-pnl-bar-fill--${fillClass}" style="${style}"></div>
+      <span class="token-pnl-bar-count">${dash}</span>
+    </div>
+  </div>`;
+}
+
+function tokenChartPlaceholderLimitN(): number {
+  return Math.max(10, Math.min(1000, Number(tokenTopPnlLimit.value) || 1000));
+}
+
+function applyTokenModeChartsPlaceholder(): void {
+  const limitN = tokenChartPlaceholderLimitN();
+  const showTop101 = limitN >= 250;
+  const resolutionLabel = formatResolutionSectionLabel(tokenTopPnlResolution.value);
+  const is24hrResolution = resolutionLabel.toLowerCase() === '24hr';
+
+  tokenSupplyPie.style.background = buildPieGradientWithGaps(
+    [1, 1, 1, 1],
+    ['#3b82f6', '#2563eb', '#1d4ed8', '#27272a']
+  );
+  tokenSupplyLegend.innerHTML = [
+    renderPieLegendRowPlaceholder('Top 10 traders', '#3b82f6'),
+    renderPieLegendRowPlaceholder('Top 11-100 traders', '#2563eb'),
+    showTop101 ? renderPieLegendRowPlaceholder(`Top 101-${limitN.toLocaleString()} traders`, '#1d4ed8') : '',
+    renderPieLegendRowPlaceholder('Non-top traders', '#27272a'),
+  ].join('');
+
+  tokenPnlBars24h.innerHTML = Array.from({ length: 9 }, () => buildTokenPnlBarPlaceholderRow('neutral')).join('');
+
+  tokenSupplyPieTotal.style.background = showTop101
+    ? buildPieGradientWithGaps([1, 1, 1], ['#3b82f6', '#2563eb', '#1d4ed8'])
+    : buildPieGradientWithGaps([1, 1], ['#3b82f6', '#2563eb']);
+  tokenSupplyLegendTotal.innerHTML = [
+    renderPieLegendRowPlaceholder('Top 10 traders', '#3b82f6'),
+    renderPieLegendRowPlaceholder('Top 11-100 traders', '#2563eb'),
+    showTop101 ? renderPieLegendRowPlaceholder(`Top 101-${limitN.toLocaleString()} traders`, '#1d4ed8') : '',
+  ].join('');
+
+  if (is24hrResolution) {
+    tokenPnlBarsTotal.innerHTML = Array.from({ length: 8 }, (_, i) =>
+      buildTokenPnlBarPlaceholderRow('trade-scale', 1 - i / 7)
+    ).join('');
+  } else {
+    tokenPnlBarsTotal.innerHTML = Array.from({ length: 8 }, () => buildTokenPnlBarPlaceholderRow('neutral')).join('');
+  }
+
+  applySelectedTradesVerticalRowVisibility();
+  if (shouldShowSelectedTradesVerticalRow()) {
+    const dash = '—';
+    tokenTradesCountBarsVertical.innerHTML = Array.from({ length: 10 }, (_, i) => {
+      const t = 1 - i / 9;
+      return `<div class="token-trades-vertical-bar-item">
+        <div class="token-trades-vertical-track">
+          <div class="token-trades-vertical-fill token-pnl-bar-fill--trade-scale" style="height:0%; --trade-grad-t:${t.toFixed(4)};"></div>
+          <span class="token-trades-vertical-count">${dash}</span>
+        </div>
+        <div class="token-trades-vertical-label">${dash}</div>
+      </div>`;
+    }).join('');
+  } else {
+    tokenTradesCountBarsVertical.innerHTML = '';
+  }
+}
+
+function applyTokenModePlaceholder(): void {
+  const dash = '—';
+  tokenLogo.style.display = 'none';
+  tokenSymbol.textContent = dash;
+  tokenName.textContent = dash;
+  tokenStats.innerHTML = buildTokenStatsPlaceholderHtml();
+  applyTokenModeChartsPlaceholder();
+}
+
 function formatPctSmart(value: number): string {
   const num = Number(value);
   if (!Number.isFinite(num) || num === 0) return '0%';
@@ -1459,6 +1631,22 @@ function isZeroPnlGroup(group: PnlDistributionGroup): boolean {
   return group.tone === 'neutral' && group.label === '0';
 }
 
+/** Positives: highest USD band first; then exact-zero row; then negatives (closest to 0 first). */
+function sortPnlDistributionGroups(groups: PnlDistributionGroup[]): PnlDistributionGroup[] {
+  const positives = groups.filter((g) => g.tone === 'positive');
+  const zeroRow = groups.filter((g) => isZeroPnlGroup(g));
+  const otherNeutral = groups.filter((g) => g.tone === 'neutral' && !isZeroPnlGroup(g));
+  const negatives = groups.filter((g) => g.tone === 'negative');
+
+  const posUpper = (g: PnlDistributionGroup) => Number(g.upper ?? 0);
+  positives.sort((a, b) => posUpper(b) - posUpper(a) || Number(b.lower ?? 0) - Number(a.lower ?? 0));
+
+  const negUpper = (g: PnlDistributionGroup) => Number(g.upper ?? 0);
+  negatives.sort((a, b) => negUpper(b) - negUpper(a) || Number(b.lower ?? 0) - Number(a.lower ?? 0));
+
+  return [...positives, ...zeroRow, ...otherNeutral, ...negatives];
+}
+
 function formatPnlRangeLabel(tone: 'positive' | 'negative', lower: number, upper: number): string {
   if (tone === 'positive') {
     return lower === 0
@@ -1471,7 +1659,7 @@ function formatPnlRangeLabel(tone: 'positive' | 'negative', lower: number, upper
 }
 
 function expandPnlGroupsToTarget(groups: PnlDistributionGroup[], values: number[], targetCount: number): PnlDistributionGroup[] {
-  if (groups.length >= targetCount) return groups;
+  if (groups.length >= targetCount) return sortPnlDistributionGroups([...groups]);
   const expanded = [...groups];
   const safeTarget = Math.max(groups.length, targetCount);
   const splitStepPriority = [0.05, 0.03, 0.02, 0.01];
@@ -1664,7 +1852,54 @@ function expandPnlGroupsToTarget(groups: PnlDistributionGroup[], values: number[
     if (!didSplit) break;
   }
 
-  return expanded;
+  const shortfall = safeTarget - expanded.length;
+  if (shortfall >= 1 && shortfall <= 2 && expanded.length > 0) {
+    const sameBound = (a: number, b: number) => Math.abs(a - b) < 1e-9;
+    const posUppers = expanded
+      .filter((g) => g.tone === 'positive' && Number.isFinite(g.upper))
+      .map((g) => Number(g.upper));
+    if (posUppers.length > 0) {
+      const posMax = Math.max(0, ...values.filter((v) => v > 0));
+      let edges = buildTierEdges(posMax);
+      let low = Math.max(...posUppers);
+      const padding: PnlDistributionGroup[] = [];
+      let added = 0;
+      let guard = 0;
+      while (added < shortfall && guard < 48) {
+        guard += 1;
+        let hiIdx = edges.findIndex((e) => e > low + 1e-12);
+        while (hiIdx < 0) {
+          edges = [...edges, edges[edges.length - 1] * 10];
+          hiIdx = edges.findIndex((e) => e > low + 1e-12);
+        }
+        const high = edges[hiIdx];
+        const bracketTaken = expanded.some(
+          (g) =>
+            g.tone === 'positive'
+            && g.lower != null
+            && g.upper != null
+            && sameBound(Number(g.lower), low)
+            && sameBound(Number(g.upper), high)
+        );
+        if (bracketTaken) {
+          low = high;
+          continue;
+        }
+        padding.push({
+          label: formatPnlRangeLabel('positive', low, high),
+          count: 0,
+          tone: 'positive',
+          lower: low,
+          upper: high,
+        });
+        low = high;
+        added += 1;
+      }
+      expanded.push(...padding);
+    }
+  }
+
+  return sortPnlDistributionGroups(expanded);
 }
 
 function buildTierEdges(maxAbs: number): number[] {
@@ -1684,7 +1919,7 @@ function buildCountTierEdges(maxVal: number): number[] {
   return edges;
 }
 
-function applyMinVisibleSlices(realSlices: number[], minVisiblePct = 1.5): number[] {
+function applyMinVisibleSlices(realSlices: number[], minVisiblePct = 0.75): number[] {
   const adjusted = realSlices.map((v) => Math.max(0, v));
   const tinyEntries = adjusted
     .map((v, i) => ({ v, i }))
@@ -2144,6 +2379,10 @@ async function loadData(): Promise<void> {
         renderToken(tokenData);
       } else {
         showSectionError(tokenSectionError, `Failed (${tokenRes.status})`);
+        tokenLogo.style.display = 'none';
+        tokenSymbol.textContent = '—';
+        tokenName.textContent = '—';
+        tokenStats.innerHTML = buildTokenStatsPlaceholderHtml();
       }
       const tokenTopPnlRes = await fetchWithRetry(`/api/tokens/${encodeURIComponent(query)}/top-pnl-traders?${tokenTopPnlParams.toString()}`);
       if (tokenTopPnlRes.ok) {
@@ -2174,11 +2413,7 @@ async function loadData(): Promise<void> {
         renderTopTraderVolumeCharts(chartRows, chartLimit, tokenData);
         renderTopTraderSelectedResolutionCharts(tokenTopPnlData.data ?? [], chartLimit);
       } else {
-        tokenSupplyLegend.innerHTML = '';
-        tokenPnlBars24h.innerHTML = '';
-        tokenSupplyLegendTotal.innerHTML = '';
-        tokenPnlBarsTotal.innerHTML = '';
-        tokenTradesCountBarsVertical.innerHTML = '';
+        applyTokenModeChartsPlaceholder();
         showSectionError(tokenTopPnlError, `Failed (${tokenTopPnlRes.status})`);
       }
     } else {
@@ -2280,5 +2515,6 @@ topTradersCards.hidden = true;
 walletPnlMeta.textContent = '—';
 walletPnlDetails.innerHTML = buildWalletPnlPlaceholder();
 requestAnimationFrame(() => syncWalletPieStackHeights());
+applyTokenModePlaceholder();
 tokenTopPnlBody.innerHTML = '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="token-top-pnl-24h-col">—</td><td>—</td><td class="token-top-pnl-24h-col">—</td></tr>';
 applyTokenTopPnl24hColumnVisibility();

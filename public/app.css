@@ -775,13 +775,31 @@ button:active {
 }
 
 .token-supply-pie {
+  position: relative;
   width: clamp(180px, 20vw, 240px);
   aspect-ratio: 1 / 1;
   height: auto;
   flex: 0 0 auto;
   border-radius: 50%;
-  border: 1px solid #27272a;
+  border: none;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.55) inset,
+    0 10px 32px rgba(0, 0, 0, 0.5);
   background: conic-gradient(#3b82f6 0deg 0deg, #2563eb 0deg 0deg, #1d4ed8 0deg 0deg, #27272a 0deg 360deg);
+}
+
+.token-supply-pie::after {
+  content: '';
+  position: absolute;
+  inset: 27%;
+  border-radius: 50%;
+  z-index: 1;
+  background: linear-gradient(165deg, #15151a 0%, #101014 50%, #0c0c10 100%);
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  pointer-events: none;
 }
 
 .token-supply-legend {
