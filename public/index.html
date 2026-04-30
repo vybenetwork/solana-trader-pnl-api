@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Solana Top Traders Wallets & Tokens</title>
-  <link rel="stylesheet" href="app.css?v=7" />
+  <link rel="stylesheet" href="app.css?v=20" />
 </head>
 <body>
   <div class="container">
@@ -49,21 +49,6 @@
           </div>
         </div>
 
-        <div class="field wallet-resolution-field resolution-inline-field wallet-only-control">
-          <label for="walletResolution">
-            <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
-            Resolution
-          </label>
-          <div class="field-control">
-            <span class="field-icon icon-grid" aria-hidden="true"></span>
-            <select id="walletResolution">
-              <option value="1d">1d</option>
-              <option value="7d" selected>7d</option>
-              <option value="30d">30d</option>
-            </select>
-          </div>
-        </div>
-
         <div class="field wallet-resolution-field resolution-inline-field token-only-control">
           <label for="tokenTopPnlResolution">
             <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
@@ -75,24 +60,6 @@
               <option value="1d">1d</option>
               <option value="7d">7d</option>
               <option value="30d" selected>30d</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field wallet-only-control">
-          <label for="walletSortField">
-            <span class="label-icon field-icon icon-sort" aria-hidden="true"></span>
-            Sort Field
-          </label>
-          <div class="field-control">
-            <span class="field-icon icon-sort" aria-hidden="true"></span>
-            <select id="walletSortField">
-              <option value="realizedPnlUsd" selected>realizedPnlUsd</option>
-              <option value="unrealizedPnlUsd">unrealizedPnlUsd</option>
-              <option value="winRate">winRate</option>
-              <option value="tradesVolumeUsd">tradesVolumeUsd</option>
-              <option value="tradesCount">tradesCount</option>
-              <option value="accountAddress">accountAddress</option>
             </select>
           </div>
         </div>
@@ -115,8 +82,6 @@
       </div>
 
       <div class="candles-mint-resolution-row wallet-only-row" id="walletControlsRow">
-        <div id="walletActionsTarget" class="inline-actions-target"></div>
-
         <div class="field">
           <label for="walletLabel">
             <span class="label-icon field-icon icon-user" aria-hidden="true"></span>
@@ -141,6 +106,8 @@
             <input type="text" id="walletPnlMintAddress" placeholder="optional mintAddress filter" />
           </div>
         </div>
+
+        <div id="walletActionsTarget" class="inline-actions-target wallet-fetch-slot"></div>
 
         <div class="field">
           <label for="walletPnlSortField">
@@ -207,8 +174,6 @@
       </div>
 
       <div class="candles-mint-resolution-row token-only-controls" id="tokenOnlyControls">
-        <div id="tokenActionsTarget" class="inline-actions-target"></div>
-
         <div class="field">
           <label for="tokenTopPnlSortDirection">
             <span class="label-icon field-icon icon-sort" aria-hidden="true"></span>
@@ -249,18 +214,20 @@
             <input type="number" id="tokenTopPnlPage" min="0" step="1" value="0" />
           </div>
         </div>
-      </div>
 
-      <div class="field inline-row-actions" id="fetchActions">
-        <label for="fetchAll">
-          <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
-          Action
-        </label>
-        <div class="actions-buttons">
-          <button type="button" id="fetchAll" class="fetch-btn-attention">Load token analytics</button>
-          <div class="loading" id="loadingIndicator" hidden aria-hidden="true">
-            <span class="loading-spinner"></span>
-            <span class="loading-text">Loading…</span>
+        <div id="tokenFetchSlot" class="inline-actions-target token-fetch-slot">
+          <div class="field inline-row-actions" id="fetchActions">
+            <label for="fetchAll">
+              <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
+              Action
+            </label>
+            <div class="actions-buttons">
+              <button type="button" id="fetchAll" class="fetch-btn-attention">Load token analytics</button>
+              <div class="loading" id="loadingIndicator" hidden aria-hidden="true">
+                <span class="loading-spinner"></span>
+                <span class="loading-text">Loading…</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -419,6 +386,6 @@
       <pre id="errorText"></pre>
     </section>
   </div>
-  <script src="app.js?v=13"></script>
+  <script src="app.js?v=21"></script>
 </body>
 </html>

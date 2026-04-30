@@ -105,14 +105,12 @@ const searchModeWallet = document.getElementById('searchModeWallet') as HTMLInpu
 const searchModeSwitchLabel = document.getElementById('searchModeSwitchLabel') as HTMLElement;
 const fetchActions = document.getElementById('fetchActions') as HTMLElement;
 const walletActionsTarget = document.getElementById('walletActionsTarget') as HTMLElement;
-const tokenActionsTarget = document.getElementById('tokenActionsTarget') as HTMLElement;
+const tokenFetchSlot = document.getElementById('tokenFetchSlot') as HTMLElement;
 const fetchAllBtn = document.getElementById('fetchAll') as HTMLButtonElement;
 const loadingIndicator = document.getElementById('loadingIndicator') as HTMLElement;
 const tokenOnlyControls = document.getElementById('tokenOnlyControls') as HTMLElement;
 
-const walletResolution = document.getElementById('walletResolution') as HTMLSelectElement;
 const walletLabel = document.getElementById('walletLabel') as HTMLSelectElement;
-const walletSortField = document.getElementById('walletSortField') as HTMLSelectElement;
 const walletSortDirection = document.getElementById('walletSortDirection') as HTMLSelectElement;
 const walletPnlMintAddress = document.getElementById('walletPnlMintAddress') as HTMLInputElement;
 const walletPnlSortField = document.getElementById('walletPnlSortField') as HTMLSelectElement;
@@ -174,8 +172,33 @@ const FETCH_RETRY_DELAY_MS = 2000;
 const DEMO_MINT = 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263';
 const DEMO_WALLET = 'CyaE1VxvBrahnPWkqm5VsdCvyS2QmNht2UFrKJHga54o';
 const FALLBACK_LOGO_URL = 'https://solana.com/src/img/branding/solanaLogoMark.png';
+/** CoinMarketCap generic icon for pump.fun–style tokens when the API supplies no logo. */
+const PUMP_MINT_FALLBACK_LOGO_URL =
+  'https://s2.coinmarketcap.com/static/img/coins/64x64/36507.png';
+
+const WALLET_PNL_TREND_LEDE =
+  'Each row is a snapshot of cumulative realized PnL through that moment. Use it to see whether the wallet was building gains, giving them back, or chopping sideways across the last seven days.';
+
+/** Shapes placeholder wallet PnL to match loaded layout (stable column heights). */
+const WALLET_PNL_PLACEHOLDER_ASSET_ROW_COUNT = 12;
+
+function walletPnlTradingLedeInnerHtml(): string {
+  const r = WALLET_TOP_TRADERS_RESOLUTION;
+  return `Realized and unrealized PnL plus key trade metrics for the <strong>${r}</strong> window used when wallet PnL is fetched.`;
+}
+
+function resolveTokenLogoSrc(logoUrl: string | undefined, mintAddress: string | undefined): string {
+  const trimmed = (logoUrl || '').trim();
+  if (trimmed) return trimmed;
+  const mint = (mintAddress || '').trim();
+  if (mint.endsWith('pump')) return PUMP_MINT_FALLBACK_LOGO_URL;
+  return '';
+}
 const DEFAULT_TOKEN_RESOLUTION = '30d';
 const DEFAULT_WALLET_RESOLUTION = '7d';
+/** Fixed query params for GET /v4/wallets/top-traders (resolution & sort field removed from UI). */
+const WALLET_TOP_TRADERS_RESOLUTION = DEFAULT_WALLET_RESOLUTION;
+const WALLET_TOP_TRADERS_SORT_FIELD = 'realizedPnlUsd';
 let lastTokenResolutionBeforeWalletSwitch: string = DEFAULT_TOKEN_RESOLUTION;
 
 function normalizeTokenResolution(value: string): string {
@@ -191,7 +214,7 @@ function getTokenResolutionAfterWalletSwitch(): string {
 }
 
 function applyWalletTopTradersTitle(): void {
-  walletTopTradersTitle.textContent = `Top traders (by realized PnL, ${walletResolution.value})`;
+  walletTopTradersTitle.textContent = `Top traders (by realized PnL, ${WALLET_TOP_TRADERS_RESOLUTION})`;
 }
 
 function getSearchMode(): SearchMode {
@@ -229,7 +252,7 @@ function applySearchModeUI(): void {
   topTradersSection.hidden = tokenMode;
   tokenTopPnlSection.hidden = !tokenMode;
   tokenOnlyControls.hidden = !tokenMode;
-  if (tokenMode) tokenActionsTarget.appendChild(fetchActions);
+  if (tokenMode) tokenFetchSlot.appendChild(fetchActions);
   else walletActionsTarget.appendChild(fetchActions);
   document
     .querySelectorAll<HTMLElement>('.wallet-only-control, .wallet-only-row')
@@ -404,9 +427,17 @@ function mergeWalletSummary(
   };
 }
 
-function renderLogoImage(url: string | undefined, alt: string): string {
-  const src = (url || '').trim() || FALLBACK_LOGO_URL;
+function renderLogoImage(url: string | undefined, alt: string, tokenMint?: string): string {
+  const src =
+    tokenMint !== undefined
+      ? resolveTokenLogoSrc(url, tokenMint) || FALLBACK_LOGO_URL
+      : (url || '').trim() || FALLBACK_LOGO_URL;
   return `<img src="${src}" alt="${alt}" class="wallet-logo-avatar" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_LOGO_URL}'" />`;
+}
+
+function renderWalletProfileAvatar(url: string | undefined, alt: string): string {
+  const src = (url || '').trim() || FALLBACK_LOGO_URL;
+  return `<img src="${src}" alt="${alt}" class="wallet-pnl-profile-avatar" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_LOGO_URL}'" />`;
 }
 
 function formatBlocktime(blocktime: number | null | undefined): string {
@@ -487,64 +518,99 @@ function renderStatusBadge(status: string | null | undefined): string {
 }
 
 function buildWalletPnlPlaceholder(): string {
-  const dummyAssetRows = Array.from({ length: 5 }, () => `<tr>
-        <td class="wallet-asset-icon-cell">${renderLogoImage(undefined, 'placeholder')}</td>
-        <td>—</td>
-        <td>—</td>
-        <td style="text-align:right">—</td>
-        <td style="text-align:right">—</td>
-        <td style="text-align:right">—</td>
-        <td style="text-align:right">—</td>
-        <td style="text-align:right">—</td>
-        <td style="text-align:right"><span class="wallet-amt-vol-usd">—</span></td>
-        <td style="text-align:right">—</td>
-        <td style="text-align:right"><span class="wallet-amt-vol-usd">—</span></td>
-        <td class="wallet-asset-tx-cell">—</td>
-      </tr>`).join('');
+  const dash = '—';
+  const dummyAssetRows = Array.from({ length: WALLET_PNL_PLACEHOLDER_ASSET_ROW_COUNT }, () => {
+    return `<tr>
+        <td class="wallet-asset-icon-cell">${dash}</td>
+        <td>${dash}</td>
+        <td>${dash}</td>
+        <td>${dash}</td>
+        <td>${dash}</td>
+        <td>${dash}</td>
+        <td>${dash}</td>
+        <td>${dash}</td>
+        <td>${dash}</td>
+        <td>${dash}</td>
+        <td>${dash}</td>
+        <td class="wallet-asset-tx-cell">${dash}</td>
+      </tr>`;
+  }).join('');
+
+  const phHighlightFilled = (kind: 'best' | 'worst'): string => {
+    const isBest = kind === 'best';
+    const roleClass = isBest ? 'wallet-pnl-highlight-card--best' : 'wallet-pnl-highlight-card--worst';
+    const ribbon = isBest ? 'Best performer' : 'Worst Performer';
+    return `<article class="wallet-pnl-highlight-card ${roleClass}" aria-label="${ribbon}">
+        <span class="wallet-pnl-highlight-ribbon">${ribbon}</span>
+        <div class="wallet-pnl-highlight-body">
+          <div class="wallet-pnl-highlight-token"><span class="wallet-token-ref">${renderLogoImage(undefined, dash)}</span><span class="mono">${dash}</span></div>
+          <div class="wallet-pnl-highlight-mint mono">${dash}</div>
+          <div class="wallet-pnl-highlight-metrics">
+            <span class="wallet-pnl-highlight-metric-label">Period PnL</span>
+            <span class="wallet-pnl-highlight-metric-value usd-tone usd-tone--neutral">${dash}</span>
+          </div>
+        </div>
+      </article>`;
+  };
+
+  const phTrendRowCount = 7;
+  const phTrendBody = Array.from({ length: phTrendRowCount }, () => {
+    return `<tr><td>${dash}</td><td style="text-align:right">${dash}</td></tr>`;
+  }).join('');
 
   return `<div class="wallet-pnl-layout">
     <div class="wallet-pnl-sections">
-      <section class="token-stats-group">
+      <section class="token-stats-group wallet-pnl-card wallet-pnl-card--profile">
         <h3 class="token-stats-group-title"><span>Wallet profile</span></h3>
-        <dl class="token-stats">
-          <dt>Name</dt><dd>—</dd>
-          <dt>Logo</dt><dd>${renderLogoImage(undefined, 'placeholder')}</dd>
-          <dt>X Profile</dt><dd>—</dd>
-          <dt>Labels</dt><dd>—</dd>
-        </dl>
+        <div class="wallet-pnl-profile-header">
+          <div class="wallet-pnl-profile-avatar-wrap" aria-hidden="true">
+            ${renderWalletProfileAvatar(undefined, dash)}
+          </div>
+          <dl class="token-stats wallet-pnl-kv wallet-pnl-profile-kv">
+            <dt>Name</dt><dd>${dash}</dd>
+            <dt>X</dt><dd>${dash}</dd>
+            <dt>Labels</dt><dd>${dash}</dd>
+          </dl>
+        </div>
       </section>
-      <section class="token-stats-group">
-        <h3 class="token-stats-group-title"><span>PnL performance</span></h3>
-        <dl class="token-stats">
-          <dt>Realized PnL</dt><dd>—</dd>
-          <dt>Unrealized PnL</dt><dd>—</dd>
-          <dt>Win rate</dt><dd>—</dd>
-          <dt>7d PnL points</dt><dd>—</dd>
-        </dl>
-      </section>
-      <section class="token-stats-group">
+      <section class="token-stats-group wallet-pnl-card wallet-pnl-card--highlights">
         <h3 class="token-stats-group-title"><span>Token highlights</span></h3>
-        <dl class="token-stats">
-          <dt>Best token</dt><dd>—</dd>
-          <dt>Worst token</dt><dd>—</dd>
-        </dl>
-      </section>
-      <section class="token-stats-group">
-        <h3 class="token-stats-group-title"><span>Trading stats</span></h3>
-        <dl class="token-stats">
-          <dt>Trades</dt><dd>—</dd>
-          <dt>Trade volume</dt><dd>—</dd>
-          <dt>Avg trade</dt><dd>—</dd>
-          <dt>Winning trades</dt><dd>—</dd>
-          <dt>Losing trades</dt><dd>—</dd>
-          <dt>Unique tokens</dt><dd>—</dd>
-        </dl>
+        <div class="wallet-pnl-highlight-grid">${phHighlightFilled('best')}${phHighlightFilled('worst')}</div>
       </section>
     </div>
     <div class="wallet-pnl-trend-col">
-      <section class="token-stats-group">
+      <section class="token-stats-group wallet-pnl-card wallet-pnl-card--pnl-trading">
+        <h3 class="token-stats-group-title"><span>PnL & trading</span></h3>
+        <p class="wallet-pnl-pnl-trading-lede">${walletPnlTradingLedeInnerHtml()}</p>
+        <div class="wallet-pnl-pnl-trading-stack">
+          <div class="wallet-pnl-metric-hero">
+            <div class="wallet-pnl-metric-hero-item wallet-pnl-metric-hero-item--realized">
+              <span class="wallet-pnl-metric-hero-label">Realized PnL</span>
+              <span class="wallet-pnl-metric-hero-value">${formatUsdCell(undefined)}</span>
+            </div>
+            <div class="wallet-pnl-metric-hero-item wallet-pnl-metric-hero-item--unrealized">
+              <span class="wallet-pnl-metric-hero-label">Unrealized PnL</span>
+              <span class="wallet-pnl-metric-hero-value">${formatUsdCell(undefined)}</span>
+            </div>
+          </div>
+          <div class="wallet-pnl-metric-row">
+            <div class="wallet-pnl-metric-chip"><span class="wallet-pnl-metric-chip-label">Winning Trades</span><span class="wallet-pnl-metric-chip-value">${formatIntFull(undefined)}</span></div>
+            <div class="wallet-pnl-metric-chip"><span class="wallet-pnl-metric-chip-label">Losing Trades</span><span class="wallet-pnl-metric-chip-value">${formatIntFull(undefined)}</span></div>
+          </div>
+          <div class="wallet-pnl-metric-row">
+            <div class="wallet-pnl-metric-chip"><span class="wallet-pnl-metric-chip-label">Unique Tokens</span><span class="wallet-pnl-metric-chip-value">${formatIntFull(undefined)}</span></div>
+            <div class="wallet-pnl-metric-chip"><span class="wallet-pnl-metric-chip-label">Total Volume</span><span class="wallet-pnl-metric-chip-value">${formatUsdCell(undefined)}</span></div>
+          </div>
+          <div class="wallet-pnl-metric-row">
+            <div class="wallet-pnl-metric-chip"><span class="wallet-pnl-metric-chip-label">Total Trade Count</span><span class="wallet-pnl-metric-chip-value">${formatTradesCountCell(undefined)}</span></div>
+            <div class="wallet-pnl-metric-chip"><span class="wallet-pnl-metric-chip-label">Average Trade Amount</span><span class="wallet-pnl-metric-chip-value">${formatUsdCell(undefined)}</span></div>
+          </div>
+        </div>
+      </section>
+      <section class="token-stats-group wallet-pnl-card wallet-pnl-card--trend">
         <h3 class="token-stats-group-title"><span>7d PnL trend points</span></h3>
-        <div class="table-wrap">
+        <p class="wallet-pnl-trend-lede">${WALLET_PNL_TREND_LEDE}</p>
+        <div class="table-wrap wallet-pnl-trend-table-wrap">
           <table class="wallet-trend-table">
             <thead>
               <tr>
@@ -552,35 +618,29 @@ function buildWalletPnlPlaceholder(): string {
                 <th style="text-align:right">PnL</th>
               </tr>
             </thead>
-            <tbody>
-              <tr><td>—</td><td style="text-align:right">—</td></tr>
-              <tr><td>—</td><td style="text-align:right">—</td></tr>
-              <tr><td>—</td><td style="text-align:right">—</td></tr>
-              <tr><td>—</td><td style="text-align:right">—</td></tr>
-              <tr><td>—</td><td style="text-align:right">—</td></tr>
-            </tbody>
+            <tbody>${phTrendBody}</tbody>
           </table>
         </div>
       </section>
     </div>
   </div>
-  <section class="token-stats-group">
-    <h3 class="token-stats-group-title"><span>Assets</span></h3>
+  <section class="token-stats-group wallet-pnl-card wallet-pnl-card--assets">
+    <h3 class="token-stats-group-title"><span>Assets (${WALLET_PNL_PLACEHOLDER_ASSET_ROW_COUNT})</span></h3>
     <div class="table-wrap wallet-assets-table-wrap">
       <table class="wallet-assets-table">
         <thead>
           <tr>
-            <th>Icon</th>
+            <th class="wallet-assets-th-icon" scope="col" aria-label="Icon"></th>
             <th>Asset</th>
             <th>Status</th>
-            <th style="text-align:right">Real. PnL</th>
-            <th style="text-align:right">Unreal. PnL</th>
-            <th style="text-align:right">Buys</th>
-            <th style="text-align:right">Sells</th>
-            <th style="text-align:right">Buy amt</th>
-            <th style="text-align:right">Buy vol</th>
-            <th style="text-align:right">Sell amt</th>
-            <th style="text-align:right">Sell vol</th>
+            <th>Real. PnL</th>
+            <th>Unreal. PnL</th>
+            <th>Buys</th>
+            <th>Sells</th>
+            <th>Buy amt</th>
+            <th>Buy vol</th>
+            <th>Sell amt</th>
+            <th>Sell vol</th>
             <th>Latest TX</th>
           </tr>
         </thead>
@@ -676,9 +736,10 @@ async function fetchWithRetry(url: string): Promise<Response> {
 }
 
 function renderToken(t: TokenData): void {
-  tokenLogo.src = t.logoUrl || '';
+  const tokenLogoSrc = resolveTokenLogoSrc(t.logoUrl, t.mintAddress);
+  tokenLogo.src = tokenLogoSrc;
   tokenLogo.alt = t.symbol || '';
-  tokenLogo.style.display = t.logoUrl ? 'block' : 'none';
+  tokenLogo.style.display = tokenLogoSrc ? 'block' : 'none';
   tokenSymbol.textContent = t.symbol || '—';
   tokenName.textContent = t.name || t.mintAddress || '—';
 
@@ -749,14 +810,14 @@ function renderToken(t: TokenData): void {
 
 function buildWalletTopTraderParams(mode: SearchMode, query: string): URLSearchParams {
   const params = new URLSearchParams({
-    resolution: walletResolution.value,
+    resolution: WALLET_TOP_TRADERS_RESOLUTION,
     limit: walletLimit.value,
     page: String(Math.max(0, Number(walletPage.value) || 0)),
   });
   const labelVal = walletLabel.value.trim().toLowerCase();
   if (labelVal) params.set('label', labelVal);
   const direction = walletSortDirection.value as SortDirection;
-  const field = walletSortField.value;
+  const field = WALLET_TOP_TRADERS_SORT_FIELD;
   if (direction === 'asc') {
     params.set('sortByAsc', field);
   } else {
@@ -774,7 +835,7 @@ function looksLikeSolanaAddress(value: string): boolean {
 
 function buildWalletPnlParams(): URLSearchParams {
   const params = new URLSearchParams({
-    resolution: walletResolution.value,
+    resolution: WALLET_TOP_TRADERS_RESOLUTION,
     limit: walletLimit.value,
     page: String(Math.max(0, Number(walletPage.value) || 0)),
   });
@@ -799,7 +860,7 @@ function renderWalletPnl(
   const summary = data.summary;
   const topMetrics = topTraderRow?.metrics;
   const tokenMetrics = data.tokenMetrics ?? [];
-  walletPnlMeta.textContent = `GET /v4/wallets/${ownerAddress}/pnl with ${queryParams.toString()} returned ${tokenMetrics.length} token metric row(s).`;
+  walletPnlMeta.textContent = `Wallet PnL: ${tokenMetrics.length} per-token row(s) for the current filter.`;
   const mergedSummary = mergeWalletSummary(summary, topMetrics);
   const metricsByMint = new Map(
     tokenMetrics
@@ -824,67 +885,95 @@ function renderWalletPnl(
     const matchedMetric = metricsByMint.get(mint);
     const symbol = matchedMetric?.tokenSymbol || matchedMetric?.tokenName || token.tokenSymbol || token.tokenName || truncateAddress(mint);
     const logoUrl = matchedMetric?.tokenLogoUrl || token.tokenLogoUrl;
-    return `<span class="wallet-token-ref">${renderLogoImage(logoUrl, symbol)}<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener noreferrer" class="mono" title="${mint}">${symbol}</a></span>`;
+    return `<span class="wallet-token-ref">${renderLogoImage(logoUrl, symbol, mint)}<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener noreferrer" class="mono" title="${mint}">${symbol}</a></span>`;
   };
 
-  const renderTokenHighlightDetails = (token?: WalletPnlSummaryTokenRef): string => {
-    if (!token?.mintAddress) return '—';
-    const pnl = token.pnlUsd;
-    const pnlToneClass = pnl != null && pnl < 0 ? 'wallet-token-highlight-pnl--negative' : 'wallet-token-highlight-pnl--positive';
-    return `<div class="wallet-token-highlight-wrap">
-      <div class="wallet-token-highlight-main">${tokenLabel(token)}</div>
-      <ul class="wallet-token-highlight-sublist">
-        <li class="${pnlToneClass}">${pnl != null ? formatUsdFull(pnl) : '—'}</li>
-      </ul>
-    </div>`;
+  const renderWalletPnlHighlightCard = (kind: 'best' | 'worst', token?: WalletPnlSummaryTokenRef): string => {
+    const isBest = kind === 'best';
+    const roleClass = isBest ? 'wallet-pnl-highlight-card--best' : 'wallet-pnl-highlight-card--worst';
+    const ribbon = isBest ? 'Best performer' : 'Worst Performer';
+    const mint = (token?.mintAddress || '').trim();
+    if (!mint) {
+      return `<article class="wallet-pnl-highlight-card ${roleClass} wallet-pnl-highlight-card--empty" aria-label="${ribbon}">
+        <span class="wallet-pnl-highlight-ribbon">${ribbon}</span>
+        <div class="wallet-pnl-highlight-body">
+          <p class="wallet-pnl-highlight-empty">No ${isBest ? 'top' : 'bottom'} token in the summary for this window.</p>
+        </div>
+      </article>`;
+    }
+    const pnl = token?.pnlUsd;
+    const pnlToneClass = pnl != null && pnl < 0 ? 'wallet-pnl-highlight-pnl--negative' : 'wallet-pnl-highlight-pnl--positive';
+    return `<article class="wallet-pnl-highlight-card ${roleClass}" aria-label="${ribbon}">
+      <span class="wallet-pnl-highlight-ribbon">${ribbon}</span>
+      <div class="wallet-pnl-highlight-body">
+        <div class="wallet-pnl-highlight-token">${tokenLabel(token)}</div>
+        <div class="wallet-pnl-highlight-mint mono" title="${mint}">${truncateAddress(mint)}</div>
+        <div class="wallet-pnl-highlight-metrics">
+          <span class="wallet-pnl-highlight-metric-label">Period PnL</span>
+          <span class="wallet-pnl-highlight-metric-value ${pnlToneClass}">${pnl != null ? formatUsdFull(pnl) : '—'}</span>
+        </div>
+      </div>
+    </article>`;
   };
 
   const profileLabels = (topTraderRow?.accountLabels ?? []).filter((label) => (label || '').trim() !== '');
-  const walletProfileHtml = `<section class="token-stats-group">
+  const walletProfileHtml = `<section class="token-stats-group wallet-pnl-card wallet-pnl-card--profile">
       <h3 class="token-stats-group-title"><span>Wallet profile</span></h3>
-      <dl class="token-stats">
-        <dt>Name</dt><dd><a href="https://vybe.fyi/wallets/${encodeURIComponent(ownerAddress)}" target="_blank" rel="noopener noreferrer" class="mono" title="${ownerAddress}">${topTraderRow?.accountName || truncateAddress(ownerAddress)}</a></dd>
-        <dt>Logo</dt><dd>${renderLogoImage(topTraderRow?.accountLogoUrl, topTraderRow?.accountName || ownerAddress)}</dd>
-        <dt>X Profile</dt><dd>${renderXProfileLink(topTraderRow?.accountTwitterUrl)}</dd>
-        <dt>Labels</dt><dd>${profileLabels.length ? profileLabels.join(', ') : '—'}</dd>
-      </dl>
+      <div class="wallet-pnl-profile-header">
+        <div class="wallet-pnl-profile-avatar-wrap" aria-hidden="true">
+          ${renderWalletProfileAvatar(topTraderRow?.accountLogoUrl, topTraderRow?.accountName || ownerAddress)}
+        </div>
+        <dl class="token-stats wallet-pnl-kv wallet-pnl-profile-kv">
+          <dt>Name</dt><dd><a href="https://vybe.fyi/wallets/${encodeURIComponent(ownerAddress)}" target="_blank" rel="noopener noreferrer" class="mono" title="${ownerAddress}">${topTraderRow?.accountName || truncateAddress(ownerAddress)}</a></dd>
+          <dt>X</dt><dd>${renderXProfileLink(topTraderRow?.accountTwitterUrl)}</dd>
+          <dt>Labels</dt><dd>${profileLabels.length ? profileLabels.join(', ') : '—'}</dd>
+        </dl>
+      </div>
     </section>`;
 
-  const performanceHtml = `<section class="token-stats-group">
-      <h3 class="token-stats-group-title"><span>PnL performance</span></h3>
-      <dl class="token-stats">
-        <dt>Realized PnL</dt><dd>${formatUsdCell(mergedSummary.realizedPnlUsd)}</dd>
-        <dt>Unrealized PnL</dt><dd>${formatUsdCell(mergedSummary.unrealizedPnlUsd)}</dd>
-        <dt>Win rate</dt><dd>${mergedSummary.winRate != null ? `${Math.round(Number(mergedSummary.winRate))}%` : '—'}</dd>
-        <dt>7d PnL points</dt><dd>${formatIntFull(mergedSummary.pnlTrendSevenDays?.length)}</dd>
-      </dl>
+  const pnlTradingHtml = `<section class="token-stats-group wallet-pnl-card wallet-pnl-card--pnl-trading">
+      <h3 class="token-stats-group-title"><span>PnL & trading</span></h3>
+      <p class="wallet-pnl-pnl-trading-lede">${walletPnlTradingLedeInnerHtml()}</p>
+      <div class="wallet-pnl-pnl-trading-stack">
+        <div class="wallet-pnl-metric-hero">
+          <div class="wallet-pnl-metric-hero-item wallet-pnl-metric-hero-item--realized">
+            <span class="wallet-pnl-metric-hero-label">Realized PnL</span>
+            <span class="wallet-pnl-metric-hero-value">${formatUsdCell(mergedSummary.realizedPnlUsd)}</span>
+          </div>
+          <div class="wallet-pnl-metric-hero-item wallet-pnl-metric-hero-item--unrealized">
+            <span class="wallet-pnl-metric-hero-label">Unrealized PnL</span>
+            <span class="wallet-pnl-metric-hero-value">${formatUsdCell(mergedSummary.unrealizedPnlUsd)}</span>
+          </div>
+        </div>
+        <div class="wallet-pnl-metric-row">
+          <div class="wallet-pnl-metric-chip wallet-pnl-metric-chip--pos"><span class="wallet-pnl-metric-chip-label">Winning Trades</span><span class="wallet-pnl-metric-chip-value">${formatIntFull(mergedSummary.winningTradesCount)}</span></div>
+          <div class="wallet-pnl-metric-chip wallet-pnl-metric-chip--neg"><span class="wallet-pnl-metric-chip-label">Losing Trades</span><span class="wallet-pnl-metric-chip-value">${formatIntFull(mergedSummary.losingTradesCount)}</span></div>
+        </div>
+        <div class="wallet-pnl-metric-row">
+          <div class="wallet-pnl-metric-chip"><span class="wallet-pnl-metric-chip-label">Unique Tokens</span><span class="wallet-pnl-metric-chip-value">${formatIntFull(mergedSummary.uniqueTokensTraded)}</span></div>
+          <div class="wallet-pnl-metric-chip"><span class="wallet-pnl-metric-chip-label">Total Volume</span><span class="wallet-pnl-metric-chip-value">${formatUsdCell(mergedSummary.tradesVolumeUsd)}</span></div>
+        </div>
+        <div class="wallet-pnl-metric-row">
+          <div class="wallet-pnl-metric-chip"><span class="wallet-pnl-metric-chip-label">Total Trade Count</span><span class="wallet-pnl-metric-chip-value">${formatTradesCountCell(mergedSummary.tradesCount)}</span></div>
+          <div class="wallet-pnl-metric-chip"><span class="wallet-pnl-metric-chip-label">Average Trade Amount</span><span class="wallet-pnl-metric-chip-value">${formatUsdCell(mergedSummary.averageTradeUsd)}</span></div>
+        </div>
+      </div>
     </section>`;
 
-  const tradingStatsHtml = `<section class="token-stats-group">
-      <h3 class="token-stats-group-title"><span>Trading stats</span></h3>
-      <dl class="token-stats">
-        <dt>Trades</dt><dd>${formatTradesCountCell(mergedSummary.tradesCount)}</dd>
-        <dt>Trade volume</dt><dd>${formatUsdCell(mergedSummary.tradesVolumeUsd)}</dd>
-        <dt>Avg trade</dt><dd>${formatUsdCell(mergedSummary.averageTradeUsd)}</dd>
-        <dt>Winning trades</dt><dd>${formatIntFull(mergedSummary.winningTradesCount)}</dd>
-        <dt>Losing trades</dt><dd>${formatIntFull(mergedSummary.losingTradesCount)}</dd>
-        <dt>Unique tokens</dt><dd>${formatIntFull(mergedSummary.uniqueTokensTraded)}</dd>
-      </dl>
-    </section>`;
-
-  const tokenHighlightsHtml = `<section class="token-stats-group">
+  const tokenHighlightsHtml = `<section class="token-stats-group wallet-pnl-card wallet-pnl-card--highlights">
       <h3 class="token-stats-group-title"><span>Token highlights</span></h3>
-      <dl class="token-stats">
-        <dt>Best token</dt><dd>${renderTokenHighlightDetails(mergedSummary.bestPerformingToken)}</dd>
-        <dt>Worst token</dt><dd>${renderTokenHighlightDetails(mergedSummary.worstPerformingToken)}</dd>
-      </dl>
+      <div class="wallet-pnl-highlight-grid">
+        ${renderWalletPnlHighlightCard('best', mergedSummary.bestPerformingToken)}
+        ${renderWalletPnlHighlightCard('worst', mergedSummary.worstPerformingToken)}
+      </div>
     </section>`;
 
   const trendRows = mergedSummary.pnlTrendSevenDays ?? [];
   const pnlTrendHtml = trendRows.length
-    ? `<section class="token-stats-group">
+    ? `<section class="token-stats-group wallet-pnl-card wallet-pnl-card--trend">
       <h3 class="token-stats-group-title"><span>7d PnL trend points</span></h3>
-      <div class="table-wrap">
+      <p class="wallet-pnl-trend-lede">${WALLET_PNL_TREND_LEDE}</p>
+      <div class="table-wrap wallet-pnl-trend-table-wrap">
         <table class="wallet-trend-table">
           <thead>
             <tr>
@@ -904,26 +993,31 @@ function renderWalletPnl(
         </table>
       </div>
     </section>`
-    : `<section class="token-stats-group wallet-pnl-empty">No 7-day trend points returned for this wallet.</section>`;
+    : `<section class="token-stats-group wallet-pnl-card wallet-pnl-card--trend wallet-pnl-empty">
+      <h3 class="token-stats-group-title"><span>7d PnL trend points</span></h3>
+      <p class="wallet-pnl-trend-lede">${WALLET_PNL_TREND_LEDE}</p>
+      <p class="wallet-pnl-trend-empty-msg">No seven-day trend samples returned for this wallet.</p>
+    </section>`;
 
+  const assetCount = tokenMetrics.length;
   const assetsTableHtml = tokenMetrics.length
-    ? `<section class="token-stats-group">
-      <h3 class="token-stats-group-title"><span>Assets</span></h3>
+    ? `<section class="token-stats-group wallet-pnl-card wallet-pnl-card--assets">
+      <h3 class="token-stats-group-title"><span>Assets (${assetCount})</span></h3>
       <div class="table-wrap wallet-assets-table-wrap">
         <table class="wallet-assets-table">
           <thead>
             <tr>
-              <th>Icon</th>
+              <th class="wallet-assets-th-icon" scope="col" aria-label="Icon"></th>
               <th>Asset</th>
               <th>Status</th>
-              <th style="text-align:right">Real. PnL</th>
-              <th style="text-align:right">Unreal. PnL</th>
-              <th style="text-align:right">Buys</th>
-              <th style="text-align:right">Sells</th>
-              <th style="text-align:right">Buy amt</th>
-              <th style="text-align:right">Buy vol</th>
-              <th style="text-align:right">Sell amt</th>
-              <th style="text-align:right">Sell vol</th>
+              <th>Real. PnL</th>
+              <th>Unreal. PnL</th>
+              <th>Buys</th>
+              <th>Sells</th>
+              <th>Buy amt</th>
+              <th>Buy vol</th>
+              <th>Sell amt</th>
+              <th>Sell vol</th>
               <th>Latest TX</th>
             </tr>
           </thead>
@@ -933,7 +1027,7 @@ function renderWalletPnl(
       const tokenLink = mint
         ? `<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener noreferrer" class="mono" title="${mint}">${symbol}</a>`
         : symbol;
-      const iconCell = renderLogoImage(metric.tokenLogoUrl, symbol);
+      const iconCell = renderLogoImage(metric.tokenLogoUrl, symbol, mint);
       const assetCell = mint
         ? `${tokenLink}<div class="wallet-asset-mint mono">${truncateAddress(mint)}</div>`
         : tokenLink;
@@ -942,25 +1036,28 @@ function renderWalletPnl(
         <td class="wallet-asset-icon-cell">${iconCell}</td>
         <td>${assetCell}</td>
         <td>${renderStatusBadge(metric.status)}</td>
-        <td style="text-align:right">${formatUsdCell(metric.realizedPnlUsd)}</td>
-        <td style="text-align:right">${formatUsdCell(metric.unrealizedPnlUsd)}</td>
-        <td style="text-align:right">${formatTradesCountHeatCell(metric.buys?.transactionCount, buysTxMin, buysTxMax)}</td>
-        <td style="text-align:right">${formatTradesCountHeatCell(metric.sells?.transactionCount, sellsTxMin, sellsTxMax)}</td>
-        <td style="text-align:right">${formatNum(metric.buys?.tokenAmount)}</td>
-        <td style="text-align:right"><span class="wallet-amt-vol-usd">${formatUsdFull(metric.buys?.volumeUsd)}</span></td>
-        <td style="text-align:right">${formatNum(metric.sells?.tokenAmount)}</td>
-        <td style="text-align:right"><span class="wallet-amt-vol-usd">${formatUsdFull(metric.sells?.volumeUsd)}</span></td>
+        <td>${formatUsdCell(metric.realizedPnlUsd)}</td>
+        <td>${formatUsdCell(metric.unrealizedPnlUsd)}</td>
+        <td>${formatTradesCountHeatCell(metric.buys?.transactionCount, buysTxMin, buysTxMax)}</td>
+        <td>${formatTradesCountHeatCell(metric.sells?.transactionCount, sellsTxMin, sellsTxMax)}</td>
+        <td>${formatNum(metric.buys?.tokenAmount)}</td>
+        <td><span class="wallet-amt-vol-usd">${formatUsdFull(metric.buys?.volumeUsd)}</span></td>
+        <td>${formatNum(metric.sells?.tokenAmount)}</td>
+        <td><span class="wallet-amt-vol-usd">${formatUsdFull(metric.sells?.volumeUsd)}</span></td>
         <td class="wallet-asset-tx-cell">${renderLatestTradeCell(latestTrade.blocktime, latestTrade.signature, latestTrade.label)}</td>
       </tr>`;
     }).join('')}</tbody>
         </table>
       </div>
     </section>`
-    : '<div class="token-stats-group wallet-pnl-empty">No token metrics returned for this wallet and filter.</div>';
+    : `<section class="token-stats-group wallet-pnl-card wallet-pnl-card--assets">
+      <h3 class="token-stats-group-title"><span>Assets (0)</span></h3>
+      <p class="wallet-pnl-assets-empty-msg">No token metrics returned for this wallet and filter.</p>
+    </section>`;
 
   walletPnlDetails.innerHTML = `<div class="wallet-pnl-layout">
-    <div class="wallet-pnl-sections">${walletProfileHtml}${performanceHtml}${tokenHighlightsHtml}${tradingStatsHtml}</div>
-    <div class="wallet-pnl-trend-col">${pnlTrendHtml}</div>
+    <div class="wallet-pnl-sections">${walletProfileHtml}${tokenHighlightsHtml}</div>
+    <div class="wallet-pnl-trend-col">${pnlTradingHtml}${pnlTrendHtml}</div>
   </div>${assetsTableHtml}`;
 }
 
@@ -1867,7 +1964,7 @@ async function loadData(): Promise<void> {
             const matchedTopRow = topList.find((row) => (row.accountAddress || '').trim() === ownerAddress);
             renderWalletPnl(ownerAddress, walletPnlData, walletPnlParams, matchedTopRow);
           } else {
-            walletPnlMeta.textContent = `GET /v4/wallets/${ownerAddress}/pnl failed (${walletPnlRes.status}).`;
+            walletPnlMeta.textContent = `Wallet PnL request failed (${walletPnlRes.status}).`;
             walletPnlDetails.innerHTML = '<div class="token-stats-group wallet-pnl-empty">Wallet PnL request failed for current selection.</div>';
           }
         } else {
@@ -1898,7 +1995,6 @@ searchModeWallet.addEventListener('change', () => {
     if (prevMode === 'token') {
       lastTokenResolutionBeforeWalletSwitch = normalizeTokenResolution(tokenTopPnlResolution.value);
     }
-    walletResolution.value = DEFAULT_WALLET_RESOLUTION;
   } else {
     tokenTopPnlResolution.value = getTokenResolutionAfterWalletSwitch();
     tokenTopPnlResolution.dispatchEvent(new Event('change'));
@@ -1924,10 +2020,6 @@ tokenTopPnlResolution.addEventListener('change', () => {
   applyTokenTopPnl24hColumnVisibility();
 });
 
-walletResolution.addEventListener('change', () => {
-  applyWalletTopTradersTitle();
-});
-
 const initialResolutionLabel = formatResolutionSectionLabel(tokenTopPnlResolution.value);
 const initialTitleResolution = formatResolutionForTitle(initialResolutionLabel);
 tokenSupplySelectedTitle.textContent = initialResolutionLabel;
@@ -1937,9 +2029,6 @@ tokenPnlSelectedTitle.textContent = initialResolutionLabel.toLowerCase() === '24
   : `PnL distribution (Last ${initialTitleResolution})`;
 tokenTradesCountSelectedTitle.textContent = `Trades count distribution (Last ${initialTitleResolution})`;
 lastTokenResolutionBeforeWalletSwitch = normalizeTokenResolution(tokenTopPnlResolution.value);
-if (getSearchMode() === 'wallet') {
-  walletResolution.value = DEFAULT_WALLET_RESOLUTION;
-}
 applyWalletTopTradersTitle();
 setSearchMode(getSearchMode());
 applySearchModeUI();
