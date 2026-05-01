@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Solana Top Traders Wallets & Tokens</title>
-  <link rel="stylesheet" href="app.css?v=66" />
+  <link rel="stylesheet" href="app.css?v=72" />
 </head>
 <body>
   <div class="container">
@@ -275,56 +275,40 @@
       </div>
     </section>
 
-    <section class="panel token-supply-panel" id="tokenSupplyPanel">
-      <div class="section-header token-supply-period-header">
-        <h2 class="token-supply-period-title">24 Hours</h2>
-      </div>
-      <p class="meta token-supply-period-desc">Rolling 24-hour snapshot: how top-trader USD volume splits across cohorts, and how many traders sit in each realized PnL band.</p>
-      <div class="token-supply-grid">
-        <div class="token-supply-card">
-          <div class="section-header">
-            <h2>Top vs. Non-Top Traders (Last 24Hr)</h2>
-          </div>
-          <p class="meta token-supply-card-desc">Top 10, 11–100, 101–limit, and non-top vs this token’s 24h top-trader USD volume.</p>
-          <div class="token-supply-wrap">
-            <div class="token-supply-pie" id="tokenSupplyPie" aria-label="Top trader volume distribution pie chart"></div>
-            <div class="token-supply-legend" id="tokenSupplyLegend"></div>
-          </div>
-        </div>
-
-        <div class="token-supply-card">
-          <div class="section-header token-supply-subheader">
-            <h2>PnL distribution (Last 24Hr)</h2>
-          </div>
-          <p class="meta token-supply-card-desc">Each bar is the count of traders in that realized PnL range for the same 24-hour top-traders response.</p>
-          <div class="token-pnl-bars" id="tokenPnlBars24h" aria-label="PnL distribution groups for 24h fetch">
-          </div>
-        </div>
-      </div>
-    </section>
-
     <section class="panel token-supply-panel" id="tokenSupplyPanelTotal">
       <div class="section-header token-supply-period-header">
         <h2 class="token-supply-period-title" id="tokenSupplySelectedTitle">30 Days</h2>
       </div>
-      <p class="meta token-supply-period-desc">Cohort volume split, PnL buckets, and (for 7d/30d) trades-count bands—all recomputed for the resolution you select below.</p>
+      <p class="meta token-supply-period-desc">Cohort volume split, PnL buckets, and trades-count column chart—all recomputed for the resolution you select below (1d, 7d, 30d).</p>
+      <div class="token-supply-grid token-supply-grid--trade-count-pie-row">
+        <div class="token-supply-card token-supply-card--fullwidth">
+          <div class="section-header">
+            <h2 id="tokenTopTradesByProfitTitle">Trade tiers (profitable traders, Last 30 Days)</h2>
+          </div>
+          <p class="meta token-supply-card-desc">Profitable traders only (ROI % &gt; 0). Six tiers match the trade-count column chart bands (fixed “2” and “3–5” trades, then four merged high bands). <strong>Slice size is not “how many traders.”</strong> Each trader adds their full <code>tradesCount</code> into their tier; slice % is that tier’s sum as a fraction of <em>all trades</em> from profitable traders—so heavy traders swell their tier. Legend: % of trades, then avg PnL %, realized USD in tier, and trader count.</p>
+          <div class="token-supply-wrap">
+            <div class="token-supply-pie" id="tokenSupplyPieTradesCount" aria-label="Share of total trade count across tiers among profitable traders (weighted by trades per trader, not headcount)"></div>
+            <div class="token-supply-legend token-supply-legend--compact-grid token-supply-legend--cols3" id="tokenSupplyLegendTradesCount"></div>
+          </div>
+        </div>
+      </div>
       <div class="token-supply-grid">
         <div class="token-supply-card">
           <div class="section-header">
-            <h2 id="tokenTopVolumeSelectedTitle">Top Traders Volume (Last 30 Days)</h2>
+            <h2 id="tokenTopVolumeSelectedTitle">Volume by profit % (Last 30 Days)</h2>
           </div>
-          <p class="meta token-supply-card-desc">Each cohort’s share of top‑N trader USD for the window (101+ when limit ≥ 250).</p>
+          <p class="meta token-supply-card-desc">Dollar share per profit band (profit ÷ volume). Each slice is what fraction of total traded dollars falls in that profit range.</p>
           <div class="token-supply-wrap">
-            <div class="token-supply-pie" id="tokenSupplyPieTotal" aria-label="Top trader total volume split pie chart"></div>
-            <div class="token-supply-legend" id="tokenSupplyLegendTotal"></div>
+            <div class="token-supply-pie" id="tokenSupplyPieTotal" aria-label="Dollar share by profit percent"></div>
+            <div class="token-supply-legend token-supply-legend--compact-grid" id="tokenSupplyLegendTotal"></div>
           </div>
         </div>
 
         <div class="token-supply-card">
           <div class="section-header token-supply-subheader">
-            <h2 id="tokenPnlSelectedTitle">PnL distribution (30 days resolution)</h2>
+            <h2 id="tokenPnlSelectedTitle">PnL distribution</h2>
           </div>
-          <p class="meta token-supply-card-desc">Same PnL bands as 24h; counts use your selected resolution.</p>
+          <p class="meta token-supply-card-desc">Each bar is the count of traders in that realized PnL range for the selected top‑N response.</p>
           <div class="token-pnl-bars" id="tokenPnlBarsTotal" aria-label="PnL distribution groups for selected resolution fetch">
           </div>
         </div>
@@ -333,7 +317,7 @@
           <div class="section-header token-supply-subheader">
             <h2 id="tokenTradesCountSelectedTitle">Trades count distribution (Last 30 Days)</h2>
           </div>
-          <p class="meta token-supply-card-desc">7d/30d: each column is a trade-count band; bar height is how many top-N traders fall in that band.</p>
+          <p class="meta token-supply-card-desc">Each column is a trade-count band; bar height is how many top‑N traders fall in that band (same fetch as the trade tiers pie).</p>
           <div class="token-trades-vertical-bars" id="tokenTradesCountBarsVertical" aria-label="Trades count distribution groups for selected resolution fetch">
           </div>
         </div>
@@ -417,6 +401,6 @@
       <pre id="errorText"></pre>
     </section>
   </div>
-  <script src="app.js?v=71"></script>
+  <script src="app.js?v=91"></script>
 </body>
 </html>
