@@ -1013,6 +1013,435 @@ button:active {
   padding-left: 0.85rem;
 }
 
+/* Profitable trade-tier pie: dashboard-style tier cards (reference: activity tier tiles). */
+.token-supply-legend--tier-dashboard.token-supply-legend--compact-grid {
+  column-gap: 0.75rem;
+  row-gap: 0.85rem;
+  align-items: stretch;
+}
+
+.token-supply-legend--tier-dashboard .token-supply-legend-item--tier-dashboard {
+  min-width: 0;
+}
+
+.token-supply-legend--tier-dashboard .token-supply-legend-item {
+  align-items: stretch;
+}
+
+.token-tier-card {
+  background: linear-gradient(165deg, rgba(22, 22, 28, 0.98) 0%, rgba(11, 11, 14, 0.99) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 0.55rem 0.65rem 0.6rem;
+  border-left: 3px solid var(--tier-accent, #38bdf8);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 10px 32px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.token-tier-card--placeholder {
+  opacity: 0.72;
+}
+
+.token-tier-card__title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #f4f4f5;
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  line-height: 1.25;
+}
+
+.token-tier-card__metrics {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.36rem;
+}
+
+.token-tier-metric {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.42rem;
+  font-size: 0.66rem;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.token-tier-metric__ico {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.58rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-top: 0.05rem;
+}
+
+/* Tier-colored slice indicator: same footprint as other metric icons (not a floating dot). */
+.token-tier-metric__ico--share-swatch {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.token-tier-metric__ico--share-swatch::before {
+  content: '';
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  background: var(--tier-swatch, #38bdf8);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+/* Static “Share” cell in the legend key under the pie (matches card swatches). */
+.token-tier-metric__ico--key-swatch {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.token-tier-metric__ico--key-swatch::before {
+  content: '';
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 100%);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.token-tier-metric__ico--pnl {
+  background: rgba(74, 222, 128, 0.14);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.22);
+}
+
+.token-tier-metric__ico--usd {
+  background: rgba(134, 239, 172, 0.1);
+  color: #86efac;
+  border: 1px solid rgba(134, 239, 172, 0.18);
+  font-size: 0.62rem;
+}
+
+.token-tier-metric__ico--people {
+  background: rgba(161, 161, 170, 0.12);
+  color: #a1a1aa;
+  border: 1px solid rgba(161, 161, 170, 0.15);
+}
+
+.token-tier-metric__ico--layers {
+  background: rgba(96, 165, 250, 0.1);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.2);
+}
+
+.token-tier-metric__svg {
+  width: 13px;
+  height: 13px;
+  display: block;
+}
+
+.token-tier-metric__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.token-tier-metric__slice-pct {
+  color: #93c5fd;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.token-tier-metric__muted {
+  color: #a1a1aa;
+}
+
+.token-tier-metric__accent-pnl {
+  color: #4ade80;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.token-tier-metric__accent-usd {
+  color: #86efac;
+  font-weight: 600;
+}
+
+.token-tier-metric__emph {
+  color: #e4e4e7;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.token-tier-metric__body--stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.token-tier-metric__label {
+  display: block;
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #71717a;
+  font-weight: 600;
+}
+
+.token-tier-metric__ratio {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #e0f2fe;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.token-tier-metric--total {
+  margin-top: 0.12rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Profitable traders by activity — dashboard layout */
+.token-trade-tier-dash__top {
+  display: grid;
+  grid-template-columns: 1fr minmax(160px, 280px);
+  gap: 1rem 1.25rem;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.token-trade-tier-dash__titles h2 {
+  margin: 0 0 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #fafafa;
+  line-height: 1.25;
+}
+
+.token-trade-tier-dash__lede {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #a1a1aa;
+  max-width: 52ch;
+}
+
+.token-trade-tier-dash__insight {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(96, 165, 250, 0.07);
+  border: 1px solid rgba(96, 165, 250, 0.18);
+}
+
+.token-trade-tier-dash__insight-bulb {
+  flex: 0 0 auto;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.token-trade-tier-dash__insight-text {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: #d4d4d8;
+}
+
+.token-trade-tier-dash__main {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) 1fr;
+  gap: 1.25rem 1.5rem;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.token-trade-tier-dash__chart-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #e4e4e7;
+}
+
+.token-trade-tier-dash__chart-note {
+  margin: 0 0 0.65rem;
+  font-size: 0.65rem;
+  line-height: 1.4;
+  color: #71717a;
+  display: flex;
+  gap: 0.35rem;
+  align-items: flex-start;
+}
+
+.token-trade-tier-dash__note-ico {
+  flex: 0 0 auto;
+  opacity: 0.85;
+}
+
+.token-supply-wrap--trade-tier-pie {
+  justify-content: center;
+  padding: 0.25rem 0;
+}
+
+.token-trade-tier-dash__chart-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.token-trade-tier-dash__legend-col {
+  min-width: 0;
+}
+
+.token-trade-tier-dash__metric-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  align-items: center;
+  margin-bottom: 0.55rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.62rem;
+  color: #a1a1aa;
+}
+
+.token-trade-tier-dash__metric-key--under-pie {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem 0.6rem;
+  align-items: center;
+  margin-top: calc(0.7rem + 6px);
+  margin-bottom: 0;
+  align-self: center;
+  max-width: fit-content;
+}
+
+.token-trade-tier-dash__metric-key-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.token-tier-metric__ico--key-mini {
+  width: 20px;
+  height: 20px;
+}
+
+/* Tier dashboard cards: three columns (2×3 for six slices). */
+.token-supply-legend--cols6 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.token-supply-legend--tier-dashboard.token-supply-legend--cols6 {
+  column-gap: 0.65rem;
+}
+
+.token-trade-tier-dash__footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 1rem 1.25rem;
+  align-items: start;
+  margin-top: 0.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.token-trade-tier-dash__footer-heading {
+  margin: 0 0 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #a1a1aa;
+}
+
+.token-trade-tier-dash__footer-p {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: #71717a;
+}
+
+.token-trade-tier-dash__code {
+  font-size: 0.62rem;
+  padding: 0.05rem 0.25rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #d4d4d8;
+}
+
+.token-trade-tier-dash__footer-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(15, 15, 18, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 120px;
+}
+
+.token-trade-tier-dash__timeframe-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #71717a;
+  font-weight: 600;
+}
+
+.token-trade-tier-dash__timeframe-value {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e4e4e7;
+}
+
+@media (max-width: 1100px) {
+  .token-trade-tier-dash__top {
+    grid-template-columns: 1fr;
+  }
+
+  .token-trade-tier-dash__main {
+    grid-template-columns: 1fr;
+  }
+
+  .token-trade-tier-dash__footer {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 960px) {
+  .token-supply-legend--cols6 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .token-supply-legend--cols6 {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 1100px) {
   .token-supply-legend--compact-grid.token-supply-legend--cols3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));

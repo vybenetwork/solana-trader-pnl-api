@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Solana Top Traders Wallets & Tokens</title>
-  <link rel="stylesheet" href="app.css?v=73" />
+  <link rel="stylesheet" href="app.css?v=80" />
 </head>
 <body>
   <div class="container">
@@ -281,15 +281,81 @@
       </div>
       <p class="meta token-supply-period-desc">Cohort volume split, PnL buckets, and trades-count column chart—all recomputed for the resolution you select below (1d, 7d, 30d).</p>
       <div class="token-supply-grid token-supply-grid--trade-count-pie-row">
-        <div class="token-supply-card token-supply-card--fullwidth">
-          <div class="section-header">
-            <h2 id="tokenTopTradesByProfitTitle">Trade tiers (profitable traders, Last 30 Days)</h2>
+        <div class="token-supply-card token-supply-card--fullwidth token-supply-card--trade-tier-dash">
+          <header class="token-trade-tier-dash__top">
+            <div class="token-trade-tier-dash__titles">
+              <h2 id="tokenTopTradesByProfitTitle">Profitable traders by activity (Last 30 Days)</h2>
+              <p class="meta token-trade-tier-dash__lede" id="tokenTradeTierLede">
+                Distribution of trading activity across trade-count tiers for the selected top‑N fetch and resolution. Only traders with positive ROI (realized PnL vs volume) are included.
+              </p>
+            </div>
+            <aside class="token-trade-tier-dash__insight" aria-label="Insight">
+              <span class="token-trade-tier-dash__insight-bulb" aria-hidden="true">💡</span>
+              <p class="token-trade-tier-dash__insight-text" id="tokenTradeTierInsightText">—</p>
+            </aside>
+          </header>
+
+          <div class="token-trade-tier-dash__main">
+            <div class="token-trade-tier-dash__chart-col">
+              <h3 class="token-trade-tier-dash__chart-title">Share of total trades</h3>
+              <p class="token-trade-tier-dash__chart-note">
+                <span class="token-trade-tier-dash__note-ico" aria-hidden="true">ⓘ</span>
+                Slice size is share of trade count among profitable traders, not number of traders.
+              </p>
+              <div class="token-supply-wrap token-supply-wrap--trade-tier-pie">
+                <div
+                  class="token-supply-pie"
+                  id="tokenSupplyPieTradesCount"
+                  aria-label="Share of total trade count across tiers among profitable traders (weighted by trades per trader, not headcount)"
+                ></div>
+              </div>
+              <div class="token-trade-tier-dash__metric-key token-trade-tier-dash__metric-key--under-pie" aria-label="Metric icons">
+                <span class="token-trade-tier-dash__metric-key-item"
+                  ><span class="token-tier-metric__ico token-tier-metric__ico--key-swatch" aria-hidden="true"></span>
+                  Share</span>
+                <span class="token-trade-tier-dash__metric-key-item"
+                  ><span class="token-tier-metric__ico token-tier-metric__ico--pnl" aria-hidden="true">%</span>
+                  Avg PnL</span>
+                <span class="token-trade-tier-dash__metric-key-item"
+                  ><span class="token-tier-metric__ico token-tier-metric__ico--usd" aria-hidden="true">$</span>
+                  Realized</span>
+                <span class="token-trade-tier-dash__metric-key-item token-trade-tier-dash__metric-key-item--people">
+                  <span class="token-tier-metric__ico token-tier-metric__ico--people token-tier-metric__ico--key-mini" aria-hidden="true"
+                    ><svg class="token-tier-metric__svg" viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      /></svg></span>
+                  Traders</span>
+              </div>
+            </div>
+            <div class="token-trade-tier-dash__legend-col">
+              <div
+                class="token-supply-legend token-supply-legend--compact-grid token-supply-legend--cols6 token-supply-legend--tier-dashboard"
+                id="tokenSupplyLegendTradesCount"
+              ></div>
+            </div>
           </div>
-          <p class="meta token-supply-card-desc">Profitable traders only (ROI % &gt; 0). Six tiers match the trade-count column chart bands (fixed “2” and “3–5” trades, then four merged high bands). <strong>Slice size is not “how many traders.”</strong> Each trader adds their full <code>tradesCount</code> into their tier; slice % is that tier’s sum as a fraction of <em>all trades</em> from profitable traders—so heavy traders swell their tier. Legend: % of trades, then avg PnL %, realized USD in tier, and trader count.</p>
-          <div class="token-supply-wrap">
-            <div class="token-supply-pie" id="tokenSupplyPieTradesCount" aria-label="Share of total trade count across tiers among profitable traders (weighted by trades per trader, not headcount)"></div>
-            <div class="token-supply-legend token-supply-legend--compact-grid token-supply-legend--cols3" id="tokenSupplyLegendTradesCount"></div>
-          </div>
+
+          <footer class="token-trade-tier-dash__footer">
+            <div class="token-trade-tier-dash__footer-col">
+              <h4 class="token-trade-tier-dash__footer-heading">Methodology</h4>
+              <p class="token-trade-tier-dash__footer-p">
+                Tiers use the same trade-count edges as the column chart (two fixed low bands plus four high bands, folded from canonical ranges when needed). Pie angles weight each trader by their
+                <code class="token-trade-tier-dash__code">tradesCount</code>.
+              </p>
+            </div>
+            <div class="token-trade-tier-dash__footer-col">
+              <h4 class="token-trade-tier-dash__footer-heading">Scope</h4>
+              <p class="token-trade-tier-dash__footer-p">
+                Top‑N traders from the Vybe top‑PnL response for your mint, filtered to wallets with positive ROI so the activity mix reflects profitable cohorts only.
+              </p>
+            </div>
+            <div class="token-trade-tier-dash__footer-aside">
+              <span class="token-trade-tier-dash__timeframe-label">Timeframe</span>
+              <span class="token-trade-tier-dash__timeframe-value" id="tokenTradeTierTimeframe">30d</span>
+            </div>
+          </footer>
         </div>
       </div>
       <div class="token-supply-grid">
@@ -402,6 +468,6 @@
       <pre id="errorText"></pre>
     </section>
   </div>
-  <script src="app.js?v=94"></script>
+  <script src="app.js?v=99"></script>
 </body>
 </html>
