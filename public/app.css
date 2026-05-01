@@ -999,6 +999,20 @@ button:active {
   margin-left: 0.45rem;
 }
 
+.token-supply-legend-sublist--tier-inner {
+  margin: 0.12rem 0 0;
+  padding-left: 0.9rem;
+  list-style: disc;
+}
+
+.token-supply-legend-sublist--tier-inner li {
+  margin: 0;
+}
+
+.token-supply-legend--compact-grid .token-supply-legend-sublist--tier-inner {
+  padding-left: 0.85rem;
+}
+
 @media (max-width: 1100px) {
   .token-supply-legend--compact-grid.token-supply-legend--cols3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));

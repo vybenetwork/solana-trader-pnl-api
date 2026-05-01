@@ -1753,6 +1753,11 @@ function formatTradeTierValue(n: number): string {
   return Math.round(num).toLocaleString();
 }
 
+/** Legend counts: plain locale ≤999, else compact K/M/B like {@link formatTradeTierValue}. */
+function formatLegendTradeCount(n: number): string {
+  return formatTradeTierValue(Math.round(Math.max(0, n)));
+}
+
 function getResolutionKey(): string {
   return tokenTopPnlResolution.value.trim().toLowerCase();
 }
@@ -1789,18 +1794,23 @@ function renderPieLegendTradeTierRow(
   totalTrades: number,
   color: string
 ): string {
-  const tt = formatIntFull(tierTrades);
-  const tot = formatIntFull(totalTrades);
+  const tierStr = formatLegendTradeCount(tierTrades);
+  const totalStr = formatLegendTradeCount(totalTrades);
   return `<div class="token-supply-legend-item">
     <span class="token-supply-legend-swatch" style="background:${color}"></span>
     <div class="token-supply-legend-content">
       <div class="token-supply-legend-label">${label}</div>
       <ul class="token-supply-legend-sublist token-supply-legend-sublist--tier">
         <li><span class="token-supply-legend-pct">${formatPctSmart(slicePct)}</span> <span class="token-supply-legend-token">of trades</span></li>
-        <li><span class="token-supply-legend-token">Total trades:</span> ${tt} / ${tot}</li>
         <li>Avg PnL <span class="token-supply-legend-pct">${formatPctSmart(avgPnlPct)}</span></li>
         <li><span class="token-supply-legend-usd">${formatUsdFull(realizedUsd)}</span> <span class="token-supply-legend-token">realized</span></li>
         <li>${traderCount.toLocaleString()} <span class="token-supply-legend-token">traders</span></li>
+        <li>
+          <span class="token-supply-legend-token">Total trades:</span>
+          <ul class="token-supply-legend-sublist token-supply-legend-sublist--tier-inner">
+            <li>${tierStr} / ${totalStr}</li>
+          </ul>
+        </li>
       </ul>
     </div>
   </div>`;
