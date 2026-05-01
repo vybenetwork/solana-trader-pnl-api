@@ -227,6 +227,7 @@ const tokenTopPnlError = document.getElementById('tokenTopPnlError') as HTMLElem
 const tokenTopPnlMeta = document.getElementById('tokenTopPnlMeta') as HTMLElement;
 const tokenTopPnlBody = document.getElementById('tokenTopPnlBody') as HTMLElement;
 const tokenTopPnlRealizedHeader = document.getElementById('tokenTopPnlRealizedHeader') as HTMLElement;
+const tokenTopPnlRoiHeader = document.getElementById('tokenTopPnlRoiHeader') as HTMLElement;
 const tokenTopPnlUnrealizedHeader = document.getElementById('tokenTopPnlUnrealizedHeader') as HTMLElement;
 const tokenTopPnlVolumeHeader = document.getElementById('tokenTopPnlVolumeHeader') as HTMLElement;
 const tokenTopPnl24hVolumeHeader = document.getElementById('tokenTopPnl24hVolumeHeader') as HTMLElement;
@@ -253,7 +254,7 @@ const TOKEN_TOP_PNL_PLACEHOLDER_ROW_COUNT = 12;
 
 function buildTokenTopPnlPlaceholderRowsHtml(): string {
   const row =
-    '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="token-top-pnl-24h-col">—</td><td>—</td><td class="token-top-pnl-24h-col">—</td></tr>';
+    '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="token-top-pnl-24h-col">—</td><td>—</td><td class="token-top-pnl-24h-col">—</td></tr>';
   return Array.from({ length: TOKEN_TOP_PNL_PLACEHOLDER_ROW_COUNT }, () => row).join('');
 }
 
@@ -428,6 +429,13 @@ function usdToneClass(n: number | null | undefined): string {
 
 function formatUsdCell(n: number | null | undefined): string {
   return `<span class="usd-tone ${usdToneClass(n)}">${formatUsdFull(n)}</span>`;
+}
+
+/** Realized PnL ÷ volume for the row; same basis as token ROI pies. */
+function formatRoiPctCell(row: TokenTopPnlTraderRow): string {
+  const pct = traderRoiPercentFromRow(row);
+  if (pct == null) return '<span class="usd-tone usd-tone--neutral">—</span>';
+  return `<span class="usd-tone ${usdToneClass(pct)}">${formatPctSmart(pct)}</span>`;
 }
 
 /** Sell USD volume ÷ buy USD volume. */
@@ -1035,6 +1043,7 @@ function applyTokenTopPnl24hColumnVisibility(): void {
   const show24hColumns = !is24hResolution;
   const resolutionLabel = is24hResolution ? '24h' : tokenTopPnlResolution.value.trim();
   tokenTopPnlRealizedHeader.textContent = `Realized PnL (${resolutionLabel})`;
+  tokenTopPnlRoiHeader.textContent = `ROI % (${resolutionLabel})`;
   tokenTopPnlUnrealizedHeader.textContent = `Unrealized PnL (${resolutionLabel})`;
   tokenTopPnlVolumeHeader.textContent = `Volume (${resolutionLabel})`;
   tokenTopPnlTradesHeader.textContent = `Trades (${resolutionLabel})`;
@@ -1698,6 +1707,7 @@ function renderTokenTopPnlTraders(
         <td>${rank}</td>
         <td>${traderLink}</td>
         <td style="text-align:right">${formatUsdCell(row.realizedPnlUsd)}</td>
+        <td style="text-align:right">${formatRoiPctCell(row)}</td>
         <td style="text-align:right">${formatUsdCell(row.unrealizedPnlUsd)}</td>
         <td style="text-align:right">${formatUsdCell(row.totalVolumeUsd)}</td>
         <td class="token-top-pnl-24h-col" style="text-align:right">${formatUsdCell(vol24h)}</td>
