@@ -222,6 +222,10 @@ const tokenTopTradesByProfitTitle = document.getElementById('tokenTopTradesByPro
 const tokenTradeTierLede = document.getElementById('tokenTradeTierLede');
 const tokenTradeTierInsightText = document.getElementById('tokenTradeTierInsightText');
 const tokenTradeTierTimeframe = document.getElementById('tokenTradeTierTimeframe');
+const tokenTradeTierFooterMethodology = document.getElementById('tokenTradeTierFooterMethodology');
+const tokenTradeTierFooterScope = document.getElementById('tokenTradeTierFooterScope');
+const tokenSupplyCardDescPnl = document.getElementById('tokenSupplyCardDescPnl');
+const tokenSupplyCardDescTradesVertical = document.getElementById('tokenSupplyCardDescTradesVertical');
 const tokenTradesCountSelectedRow = document.getElementById('tokenTradesCountSelectedRow') as HTMLElement;
 const tokenTradesCountSelectedTitle = document.getElementById('tokenTradesCountSelectedTitle') as HTMLElement;
 const tokenTradesCountBarsVertical = document.getElementById('tokenTradesCountBarsVertical') as HTMLElement;
@@ -1786,6 +1790,29 @@ function formatLegendTradeCount(n: number): string {
   return formatTradeTierValue(Math.round(Math.max(0, n)));
 }
 
+/** Donut hub second line: compact K with decimals only when total ≤ 9.99K. */
+function formatTradeTierCenterTradesSubtitle(totalTrades: number): string {
+  const num = Math.round(Math.max(0, totalTrades));
+  if (!Number.isFinite(num) || num === 0) return '0 Trades';
+  if (num >= 1e9) {
+    const scaled = (num / 1e9).toFixed(2).replace(/\.?0+$/, '');
+    return `${scaled}B Trades`;
+  }
+  if (num >= 1e6) {
+    const scaled = (num / 1e6).toFixed(2).replace(/\.?0+$/, '');
+    return `${scaled}M Trades`;
+  }
+  if (num >= 1e3) {
+    if (num > 9990) {
+      const k = Math.round(num / 1000);
+      return `${k.toLocaleString()}K Trades`;
+    }
+    const scaled = (num / 1e3).toFixed(2).replace(/\.?0+$/, '');
+    return `${scaled}K Trades`;
+  }
+  return `${num.toLocaleString()} Trades`;
+}
+
 function getResolutionKey(): string {
   return tokenTopPnlResolution.value.trim().toLowerCase();
 }
@@ -1799,15 +1826,45 @@ function applySelectedTradesVerticalRowVisibility(): void {
   tokenTradesCountSelectedRow.hidden = !shouldShowSelectedTradesVerticalRow();
 }
 
+/** Selected token top‑PnL `limit` query value for labels (never the letter “N”). */
+function getTokenTopPnlLimitDisplay(): string {
+  const parsed = Number.parseInt(String(tokenTopPnlLimit.value).trim(), 10);
+  if (Number.isFinite(parsed) && parsed > 0) return String(parsed);
+  return '1000';
+}
+
 function setTradeTierDashboardMeta(titleResolution: string, resolutionLabel: string): void {
+  const lim = getTokenTopPnlLimitDisplay();
   tokenTopTradesByProfitTitle.textContent = `Profitable traders by activity (Last ${titleResolution})`;
   if (tokenTradeTierLede) {
-    tokenTradeTierLede.textContent =
-      'Distribution of trading activity across trade-count tiers for the selected top‑N fetch and resolution. Only traders with positive ROI (realized PnL vs volume) are included.';
+    tokenTradeTierLede.textContent = `Trade-count tiers for the top ${lim} fetch (${resolutionLabel}); positive ROI only.`;
+  }
+  if (tokenTradeTierFooterMethodology) {
+    tokenTradeTierFooterMethodology.textContent =
+      'Same band edges as the trades column; slice angle ∝ each trader’s tradesCount (tiers folded when needed).';
+  }
+  if (tokenTradeTierFooterScope) {
+    tokenTradeTierFooterScope.textContent = `Vybe token top‑PnL for this mint: top ${lim} at ${resolutionLabel}; only ROI‑positive wallets, same fetch and filters as the charts above.`;
+  }
+  if (tokenSupplyCardDescPnl) {
+    tokenSupplyCardDescPnl.textContent = `Traders per realized PnL band (top ${lim}, ${resolutionLabel}).`;
+  }
+  if (tokenSupplyCardDescTradesVertical) {
+    tokenSupplyCardDescTradesVertical.textContent = `Traders per trade-count band (top ${lim}; same tiers as the pie).`;
   }
   if (tokenTradeTierTimeframe) {
     tokenTradeTierTimeframe.textContent = resolutionLabel;
   }
+}
+
+function syncTokenSupplySectionHeadingsForResolution(): void {
+  const resolutionLabel = formatResolutionSectionLabel(tokenTopPnlResolution.value);
+  const titleResolution = formatResolutionForTitle(resolutionLabel);
+  tokenSupplySelectedTitle.textContent = resolutionLabel;
+  tokenTopVolumeSelectedTitle.textContent = `Volume by profit % (Last ${titleResolution})`;
+  setTradeTierDashboardMeta(titleResolution, resolutionLabel);
+  tokenPnlSelectedTitle.textContent = `PnL distribution (Last ${titleResolution})`;
+  tokenTradesCountSelectedTitle.textContent = `Trades count distribution (Last ${titleResolution})`;
 }
 
 function renderPieLegendRow(label: string, percentage: number, volume: string, color: string): string {
@@ -1843,7 +1900,7 @@ function renderPieLegendTradeTierRow(
         <li class="token-tier-metric">
           <span class="token-tier-metric__ico token-tier-metric__ico--share-swatch" style="--tier-swatch:${color}" aria-hidden="true"></span>
           <div class="token-tier-metric__body">
-            <span class="token-tier-metric__slice-pct">${formatPctSmart(slicePct)}</span><span class="token-tier-metric__muted"> share of trades</span>
+            <span class="token-tier-metric__slice-pct">${formatPctSmart(slicePct)}</span><span class="token-tier-metric__muted"> share</span>
           </div>
         </li>
         <li class="token-tier-metric">
@@ -1936,12 +1993,16 @@ function applyTokenModeChartsPlaceholder(): void {
     new Array(TRADE_TIER_PIE_SEGMENT_COUNT).fill(0),
     TRADE_TIER_PIE_COLORS.slice(0, TRADE_TIER_PIE_SEGMENT_COUNT)
   );
+  clearTradeTierPieLabelOverlay(tokenSupplyPieTradesCount);
+  mountTradeTierPieCenterHub(tokenSupplyPieTradesCount, { mock: true, totalTrades: 0 });
   tokenSupplyLegendTradesCount.innerHTML = TRADE_TIER_PIE_COLORS.slice(0, TRADE_TIER_PIE_SEGMENT_COUNT)
     .map((color) => renderTierPieLegendPlaceholder(color))
     .join('');
   if (tokenTradeTierInsightText) tokenTradeTierInsightText.textContent = '—';
 
   tokenPnlBarsTotal.innerHTML = Array.from({ length: 8 }, () => buildTokenPnlBarPlaceholderRow('neutral')).join('');
+
+  syncTokenSupplySectionHeadingsForResolution();
 
   applySelectedTradesVerticalRowVisibility();
   if (shouldShowSelectedTradesVerticalRow()) {
@@ -2351,11 +2412,14 @@ function applyMinVisibleSlices(realSlices: number[], minVisiblePct = 0.75): numb
   return adjusted;
 }
 
+/** Gap wedges between slices; must stay in sync with {@link tradeTierPieSliceMidAnglesDeg}. */
+const PIE_CONIC_GAP_DEG = 1.2;
+
 function buildPieGradientWithGaps(
   slices: number[],
   colors: string[],
   gapColor = '#0a0a0d',
-  gapDeg = 1.2
+  gapDeg = PIE_CONIC_GAP_DEG
 ): string {
   const entries = slices
     .map((value, i) => ({ value: Math.max(0, value), color: colors[i] ?? '#27272a' }))
@@ -2393,6 +2457,335 @@ function buildPieGradientWithGaps(
   }
 
   return `conic-gradient(${stops.join(', ')})`;
+}
+
+/** Mid-angle (degrees, CSS conic: 0° = top, clockwise) per slice index; null if slice weight is 0. */
+function tradeTierPieSliceMidAnglesDeg(slices: number[], gapDeg: number): (number | null)[] {
+  const out: (number | null)[] = slices.map(() => null);
+  const entries = slices
+    .map((value, i) => ({ value: Math.max(0, value), i }))
+    .filter((e) => e.value > 0);
+  if (entries.length === 0) return out;
+  if (entries.length === 1) {
+    out[entries[0].i] = 0;
+    return out;
+  }
+  const total = entries.reduce((sum, e) => sum + e.value, 0);
+  const totalGap = Math.min(359, gapDeg * entries.length);
+  const usableDeg = Math.max(1, 360 - totalGap);
+  let cursor = 0;
+  for (const entry of entries) {
+    cursor += gapDeg;
+    const sliceDeg = usableDeg * (entry.value / total);
+    out[entry.i] = cursor + sliceDeg / 2;
+    cursor += sliceDeg;
+  }
+  return out;
+}
+
+/** Angular width (degrees) of each slice; null if weight is 0. Mirrors {@link buildPieGradientWithGaps}. */
+function tradeTierPieSliceSpanDeg(slices: number[], gapDeg: number): (number | null)[] {
+  const out: (number | null)[] = slices.map(() => null);
+  const entries = slices
+    .map((value, i) => ({ value: Math.max(0, value), i }))
+    .filter((e) => e.value > 0);
+  if (entries.length === 0) return out;
+  if (entries.length === 1) {
+    out[entries[0].i] = 360;
+    return out;
+  }
+  const total = entries.reduce((sum, e) => sum + e.value, 0);
+  const totalGap = Math.min(359, gapDeg * entries.length);
+  const usableDeg = Math.max(1, 360 - totalGap);
+  let cursor = 0;
+  for (const entry of entries) {
+    cursor += gapDeg;
+    const sliceDeg = usableDeg * (entry.value / total);
+    out[entry.i] = sliceDeg;
+    cursor += sliceDeg;
+  }
+  return out;
+}
+
+function clearTradeTierPieLabelOverlay(pieEl: HTMLElement): void {
+  pieEl.querySelector('.token-supply-pie__label-svg')?.remove();
+  pieEl.querySelector('.token-supply-pie__hub')?.remove();
+}
+
+function mountTradeTierPieCenterHub(pieEl: HTMLElement, options: { mock: boolean; totalTrades: number }): void {
+  pieEl.querySelector('.token-supply-pie__hub')?.remove();
+  const hub = document.createElement('div');
+  hub.className = 'token-supply-pie__hub';
+  hub.setAttribute('aria-hidden', 'true');
+  const pctEl = document.createElement('div');
+  pctEl.className = 'token-supply-pie__hub-pct';
+  pctEl.textContent = options.mock ? '—' : '100%';
+  const subEl = document.createElement('div');
+  subEl.className = 'token-supply-pie__hub-sub';
+  subEl.textContent = options.mock ? '—' : formatTradeTierCenterTradesSubtitle(options.totalTrades);
+  hub.appendChild(pctEl);
+  hub.appendChild(subEl);
+  pieEl.appendChild(hub);
+}
+
+/**
+ * Minimum angle (degrees) between adjacent **outside** % labels around the donut.
+ * Raise this to spread callouts wider; lower to let labels sit closer (may overlap on tiny slices).
+ * `TIER_PIE_LABEL_MAX_TANGENT_DEG` must stay large enough to reach this target at the 0°/360° wrap.
+ */
+const TIER_PIE_OUTSIDE_LABEL_MIN_ANGULAR_SEP_DEG = 20;
+
+const TIER_PIE_LABEL_MIN_SEP_DEG = TIER_PIE_OUTSIDE_LABEL_MIN_ANGULAR_SEP_DEG;
+const TIER_PIE_LABEL_TIGHT_PAIR_MIN_DEG = TIER_PIE_OUTSIDE_LABEL_MIN_ANGULAR_SEP_DEG;
+const TIER_PIE_LABEL_MAX_ANGLE_OFF = 11;
+const TIER_PIE_LABEL_MAX_TANGENT_DEG = 26;
+const TIER_PIE_LABEL_R_STACK = 5.25;
+/** Donut hole inset 27% → inner radius ≈ 23 in viewBox-50 units; outer rim ~49.25. */
+const TIER_PIE_R_INNER = 23;
+const TIER_PIE_R_OUTER = 49.25;
+const TIER_PIE_R_LABEL_INSIDE = (TIER_PIE_R_INNER + TIER_PIE_R_OUTER) / 2;
+const TIER_PIE_INSIDE_FONT_UNITS = 4.35;
+const TIER_PIE_INSIDE_MIN_SLICE_DEG = 10;
+const TIER_PIE_INSIDE_ARC_PAD = 1.18;
+
+type TierPieLabelCand = { mid: number; pct: number; i: number };
+
+function tradeTierEstimatePctLabelWidth(pct: number, fontUnits: number): number {
+  const len = `${pct.toFixed(2)}%`.length;
+  return len * fontUnits * 0.54;
+}
+
+function tradeTierPieLabelFitsInside(spanDeg: number | null, pct: number): boolean {
+  if (spanDeg == null || spanDeg < TIER_PIE_INSIDE_MIN_SLICE_DEG) return false;
+  const arcLen = TIER_PIE_R_LABEL_INSIDE * ((spanDeg * Math.PI) / 180);
+  const w = tradeTierEstimatePctLabelWidth(pct, TIER_PIE_INSIDE_FONT_UNITS);
+  return arcLen >= w * TIER_PIE_INSIDE_ARC_PAD;
+}
+
+function tradeTierPieLabelFillForSlice(hex: string): { fill: string; onDarkSlice: boolean } {
+  const { r, g, b } = hexToRgb(hex);
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return lum > 0.52 ? { fill: '#0f172a', onDarkSlice: false } : { fill: '#f8fafc', onDarkSlice: true };
+}
+
+function clampNum(n: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, n));
+}
+
+/**
+ * Separate outside labels on the circle, including the wrap at 0°/360° (linear sort misses that pair).
+ * Phase 1: nudge slice-linked angles. Phase 2: tangential offsets (label-only bearing) so text separates
+ * even when radial stacking cannot. Phase 3: radial tiers from combined label bearing.
+ */
+function computeTradeTierPieLabelLayout(cands: TierPieLabelCand[]): {
+  angleOff: Map<number, number>;
+  tangentialDeg: Map<number, number>;
+  radialBoost: Map<number, number>;
+} {
+  const angleOff = new Map<number, number>();
+  const tangentialDeg = new Map<number, number>();
+  for (const c of cands) {
+    angleOff.set(c.i, 0);
+    tangentialDeg.set(c.i, 0);
+  }
+  const eff = (c: TierPieLabelCand) => c.mid + (angleOff.get(c.i) ?? 0);
+  const lab = (c: TierPieLabelCand) => c.mid + (angleOff.get(c.i) ?? 0) + (tangentialDeg.get(c.i) ?? 0);
+  const n = cands.length;
+  const radialBoost = new Map<number, number>();
+
+  if (n <= 1) return { angleOff, tangentialDeg, radialBoost };
+
+  for (let pass = 0; pass < 18; pass++) {
+    const ord = [...cands].sort((a, b) => eff(a) - eff(b));
+    let changed = false;
+    for (let k = 0; k < n; k++) {
+      const a = ord[k];
+      const b = ord[(k + 1) % n];
+      const ea = eff(a);
+      const eb = eff(b) + (k === n - 1 ? 360 : 0);
+      const gap = eb - ea;
+      if (gap >= TIER_PIE_LABEL_MIN_SEP_DEG) continue;
+      const deficit = TIER_PIE_LABEL_MIN_SEP_DEG - gap;
+      const step = Math.min(deficit * 0.52, 4.5);
+      angleOff.set(a.i, clampNum((angleOff.get(a.i) ?? 0) - step, -TIER_PIE_LABEL_MAX_ANGLE_OFF, TIER_PIE_LABEL_MAX_ANGLE_OFF));
+      angleOff.set(b.i, clampNum((angleOff.get(b.i) ?? 0) + step, -TIER_PIE_LABEL_MAX_ANGLE_OFF, TIER_PIE_LABEL_MAX_ANGLE_OFF));
+      changed = true;
+    }
+    if (!changed) break;
+  }
+
+  for (let pass = 0; pass < 20; pass++) {
+    const ord = [...cands].sort((a, b) => lab(a) - lab(b));
+    let changed = false;
+    for (let k = 0; k < n; k++) {
+      const a = ord[k];
+      const b = ord[(k + 1) % n];
+      const la = lab(a);
+      const lb = lab(b) + (k === n - 1 ? 360 : 0);
+      const gap = lb - la;
+      if (gap >= TIER_PIE_LABEL_MIN_SEP_DEG) continue;
+      const deficit = TIER_PIE_LABEL_MIN_SEP_DEG - gap;
+      const half = Math.min(deficit * 0.55, 7);
+      tangentialDeg.set(
+        a.i,
+        clampNum((tangentialDeg.get(a.i) ?? 0) - half, -TIER_PIE_LABEL_MAX_TANGENT_DEG, TIER_PIE_LABEL_MAX_TANGENT_DEG)
+      );
+      tangentialDeg.set(
+        b.i,
+        clampNum((tangentialDeg.get(b.i) ?? 0) + half, -TIER_PIE_LABEL_MAX_TANGENT_DEG, TIER_PIE_LABEL_MAX_TANGENT_DEG)
+      );
+      changed = true;
+    }
+    if (!changed) break;
+  }
+
+  {
+    const ord = [...cands].sort((a, b) => lab(a) - lab(b));
+    let tightK = 0;
+    let tightGap = Infinity;
+    for (let k = 0; k < n; k++) {
+      const la = lab(ord[k]);
+      const lb = lab(ord[(k + 1) % n]) + (k === n - 1 ? 360 : 0);
+      const g = lb - la;
+      if (g < tightGap) {
+        tightGap = g;
+        tightK = k;
+      }
+    }
+    if (tightGap < TIER_PIE_LABEL_TIGHT_PAIR_MIN_DEG) {
+      const a = ord[tightK];
+      const b = ord[(tightK + 1) % n];
+      const push = (TIER_PIE_LABEL_TIGHT_PAIR_MIN_DEG - tightGap) * 0.45 + 7;
+      tangentialDeg.set(
+        a.i,
+        clampNum((tangentialDeg.get(a.i) ?? 0) - push, -TIER_PIE_LABEL_MAX_TANGENT_DEG, TIER_PIE_LABEL_MAX_TANGENT_DEG)
+      );
+      tangentialDeg.set(
+        b.i,
+        clampNum((tangentialDeg.get(b.i) ?? 0) + push, -TIER_PIE_LABEL_MAX_TANGENT_DEG, TIER_PIE_LABEL_MAX_TANGENT_DEG)
+      );
+    }
+  }
+
+  const ord = [...cands].sort((a, b) => lab(a) - lab(b));
+  let prev = -Infinity;
+  let stack = 0;
+  for (const item of ord) {
+    const e = lab(item);
+    if (e - prev < TIER_PIE_LABEL_MIN_SEP_DEG * 0.55) stack += 1;
+    else stack = 0;
+    prev = e;
+    radialBoost.set(item.i, stack * TIER_PIE_LABEL_R_STACK);
+  }
+  if (n >= 2) {
+    const wrapGap = lab(ord[0]) + 360 - lab(ord[n - 1]);
+    if (wrapGap < TIER_PIE_LABEL_MIN_SEP_DEG * 0.55) {
+      const victim = ord[0].i;
+      radialBoost.set(victim, (radialBoost.get(victim) ?? 0) + TIER_PIE_LABEL_R_STACK);
+      const victim2 = ord[n - 1].i;
+      radialBoost.set(victim2, (radialBoost.get(victim2) ?? 0) + TIER_PIE_LABEL_R_STACK * 0.85);
+    }
+  }
+
+  return { angleOff, tangentialDeg, radialBoost };
+}
+
+/** Slice labels: inside the ring when arc fits the string; otherwise outside with leaders. */
+function mountTradeTierPieLabelOverlay(pieEl: HTMLElement, slicePcts: number[], sliceColors: string[]): void {
+  clearTradeTierPieLabelOverlay(pieEl);
+  const mids = tradeTierPieSliceMidAnglesDeg(slicePcts, PIE_CONIC_GAP_DEG);
+  const spans = tradeTierPieSliceSpanDeg(slicePcts, PIE_CONIC_GAP_DEG);
+  const cx = 50;
+  const cy = 50;
+  const rEdge = TIER_PIE_R_OUTER;
+  const rTextBase = 58.5;
+  const lineEndInset = 5.2;
+
+  const candidates: TierPieLabelCand[] = [];
+  for (let i = 0; i < slicePcts.length; i++) {
+    const pct = slicePcts[i];
+    const mid = mids[i];
+    if (pct <= 0 || mid == null || !Number.isFinite(mid)) continue;
+    candidates.push({ mid, pct, i });
+  }
+
+  const inside = new Set<number>();
+  for (const c of candidates) {
+    if (tradeTierPieLabelFitsInside(spans[c.i], c.pct)) inside.add(c.i);
+  }
+
+  const outsideCands = candidates.filter((c) => !inside.has(c.i));
+  const { angleOff, tangentialDeg, radialBoost } = computeTradeTierPieLabelLayout(outsideCands);
+
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'token-supply-pie__label-svg');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.setAttribute('overflow', 'visible');
+  svg.setAttribute('aria-hidden', 'true');
+
+  for (const { mid, pct, i } of candidates) {
+    const color = sliceColors[i] ?? '#38bdf8';
+
+    if (inside.has(i)) {
+      const rad = (mid * Math.PI) / 180;
+      const tx = cx + TIER_PIE_R_LABEL_INSIDE * Math.sin(rad);
+      const ty = cy - TIER_PIE_R_LABEL_INSIDE * Math.cos(rad);
+      const { fill, onDarkSlice } = tradeTierPieLabelFillForSlice(color);
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute(
+        'class',
+        `token-supply-pie__label-text token-supply-pie__label-text--inside${onDarkSlice ? ' token-supply-pie__label-text--inside-on-dark' : ' token-supply-pie__label-text--inside-on-light'}`
+      );
+      text.setAttribute('x', tx.toFixed(2));
+      text.setAttribute('y', ty.toFixed(2));
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('dominant-baseline', 'middle');
+      text.setAttribute('fill', fill);
+      text.textContent = `${pct.toFixed(2)}%`;
+      svg.appendChild(text);
+      continue;
+    }
+
+    const showMid = mid + (angleOff.get(i) ?? 0) + (tangentialDeg.get(i) ?? 0);
+    const rText = rTextBase + (radialBoost.get(i) ?? 0);
+    const radRim = (mid * Math.PI) / 180;
+    const radLbl = (showMid * Math.PI) / 180;
+    const sx = cx + rEdge * Math.sin(radRim);
+    const sy = cy - rEdge * Math.cos(radRim);
+    const tx = cx + rText * Math.sin(radLbl);
+    const ty = cy - rText * Math.cos(radLbl);
+    const lx = cx + (rText - lineEndInset) * Math.sin(radLbl);
+    const ly = cy - (rText - lineEndInset) * Math.cos(radLbl);
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('class', 'token-supply-pie__label-line');
+    line.setAttribute('x1', sx.toFixed(2));
+    line.setAttribute('y1', sy.toFixed(2));
+    line.setAttribute('x2', lx.toFixed(2));
+    line.setAttribute('y2', ly.toFixed(2));
+    svg.appendChild(line);
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('class', 'token-supply-pie__label-text');
+    text.setAttribute('x', tx.toFixed(2));
+    text.setAttribute('y', ty.toFixed(2));
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.textContent = `${pct.toFixed(2)}%`;
+    svg.appendChild(text);
+  }
+
+  if (svg.childNodes.length > 0) pieEl.appendChild(svg);
+}
+
+function mountTradeTierPieOverlays(
+  pieEl: HTMLElement,
+  slicePcts: number[],
+  sliceColors: string[],
+  hub: { mock: boolean; totalTrades: number }
+): void {
+  mountTradeTierPieLabelOverlay(pieEl, slicePcts, sliceColors);
+  mountTradeTierPieCenterHub(pieEl, hub);
 }
 
 function applyMaxPnlGroups(
@@ -2806,8 +3199,10 @@ function renderProfitableTradersTradeTierPie(
 
   if (profitable.length === 0) {
     pie.style.background = buildPieGradientWithGaps([1], ['#27272a']);
+    clearTradeTierPieLabelOverlay(pie);
+    mountTradeTierPieCenterHub(pie, { mock: true, totalTrades: 0 });
     legend.innerHTML =
-      '<div class="token-supply-legend-item"><div class="token-supply-legend-content"><div class="token-supply-legend-label">No profitable traders in top‑N list</div></div></div>';
+      `<div class="token-supply-legend-item"><div class="token-supply-legend-content"><div class="token-supply-legend-label">No profitable traders in top ${limitN} list</div></div></div>`;
     if (tokenTradeTierInsightText) tokenTradeTierInsightText.textContent = '—';
     return;
   }
@@ -2815,6 +3210,8 @@ function renderProfitableTradersTradeTierPie(
   const tierDef = buildProfitableTradersTradeTierPieDefinitions(rows, limitN);
   if (!tierDef || tierDef.tiers.length === 0) {
     pie.style.background = buildPieGradientWithGaps([1], ['#27272a']);
+    clearTradeTierPieLabelOverlay(pie);
+    mountTradeTierPieCenterHub(pie, { mock: true, totalTrades: 0 });
     legend.innerHTML =
       '<div class="token-supply-legend-item"><div class="token-supply-legend-content"><div class="token-supply-legend-label">No trade-count tiers for profitable traders</div></div></div>';
     if (tokenTradeTierInsightText) tokenTradeTierInsightText.textContent = '—';
@@ -2844,6 +3241,8 @@ function renderProfitableTradersTradeTierPie(
   const totalW = weightByTier.reduce((a, b) => a + b, 0);
   if (totalW <= 0) {
     pie.style.background = buildPieGradientWithGaps([1], ['#27272a']);
+    clearTradeTierPieLabelOverlay(pie);
+    mountTradeTierPieCenterHub(pie, { mock: true, totalTrades: 0 });
     legend.innerHTML =
       '<div class="token-supply-legend-item"><div class="token-supply-legend-content"><div class="token-supply-legend-label">No trades for profitable traders</div></div></div>';
     if (tokenTradeTierInsightText) tokenTradeTierInsightText.textContent = '—';
@@ -2855,9 +3254,10 @@ function renderProfitableTradersTradeTierPie(
 
   const colors = TRADE_TIER_PIE_COLORS;
   const slicePcts = weightByTier.map((w) => (w / totalW) * 100);
-  const displaySlices = applyMinVisibleSlices(slicePcts);
+  /* Outside labels remove the need to inflate tiny wedges; keep angles = true shares so % matches arc size. */
   const segColors = weightByTier.map((_, i) => colors[i % colors.length]);
-  pie.style.background = buildPieGradientWithGaps(displaySlices, segColors);
+  pie.style.background = buildPieGradientWithGaps(slicePcts, segColors);
+  mountTradeTierPieOverlays(pie, slicePcts, segColors, { mock: false, totalTrades: totalW });
 
   const tierSortKey = (idx: number): number => {
     if (tierDef.zeroCount > 0 && idx === tierDef.tiers.length) return -1;
@@ -2906,7 +3306,7 @@ function renderProfitableTradersTradeTierPie(
     const lbl = tierLabels[maxI] ?? 'Leading tier';
     const n = roiCountByTier[maxI];
     const avgRoi = n > 0 ? roiSumByTier[maxI] / n : 0;
-    tokenTradeTierInsightText.textContent = `${lbl} holds the largest share at ${formatPctSmart(maxPct)} of trades (avg PnL ${formatPctSmart(avgRoi)} for traders in that tier).`;
+    tokenTradeTierInsightText.textContent = `${lbl} holds the largest share at ${formatPctSmart(maxPct)} (avg PnL ${formatPctSmart(avgRoi)} for traders in that tier).`;
   }
 }
 
@@ -2931,8 +3331,9 @@ function renderTopTraderRoiBandPie(rows: TokenTopPnlTraderRow[], target: { pie: 
   const coarseColors = TOKEN_TRADER_ROI_VOLUME_BANDS.map((b) => b.color);
   if (totalWeight <= 0) {
     pie.style.background = buildPieGradientWithGaps([1], ['#27272a']);
+    const lim = getTokenTopPnlLimitDisplay();
     legend.innerHTML =
-      '<div class="token-supply-legend-item"><div class="token-supply-legend-content"><div class="token-supply-legend-label">No volume in top‑N list</div></div></div>';
+      `<div class="token-supply-legend-item"><div class="token-supply-legend-content"><div class="token-supply-legend-label">No volume in top ${lim} list</div></div></div>`;
     return;
   }
 
@@ -3042,13 +3443,7 @@ function renderTradesCountDistributionVerticalBars(
 function renderTopTraderSelectedResolutionCharts(rows: TokenTopPnlTraderRow[], topLimit: number): void {
   const limitN = Math.max(1, topLimit);
   const volumeRows = rows.slice(0, limitN);
-  const resolutionLabel = formatResolutionSectionLabel(tokenTopPnlResolution.value);
-  const titleResolution = formatResolutionForTitle(resolutionLabel);
-  tokenSupplySelectedTitle.textContent = resolutionLabel;
-  tokenTopVolumeSelectedTitle.textContent = `Volume by profit % (Last ${titleResolution})`;
-  setTradeTierDashboardMeta(titleResolution, resolutionLabel);
-  tokenPnlSelectedTitle.textContent = `PnL distribution (Last ${titleResolution})`;
-  tokenTradesCountSelectedTitle.textContent = `Trades count distribution (Last ${titleResolution})`;
+  syncTokenSupplySectionHeadingsForResolution();
   renderPnlDistributionBars(rows, topLimit, tokenPnlBarsTotal, 8);
   applySelectedTradesVerticalRowVisibility();
   if (shouldShowSelectedTradesVerticalRow()) {
@@ -3189,15 +3584,13 @@ fetchAllBtn.addEventListener('click', () => {
 });
 
 tokenTopPnlResolution.addEventListener('change', () => {
-  const resolutionLabel = formatResolutionSectionLabel(tokenTopPnlResolution.value);
-  const titleResolution = formatResolutionForTitle(resolutionLabel);
-  tokenSupplySelectedTitle.textContent = resolutionLabel;
-  tokenTopVolumeSelectedTitle.textContent = `Volume by profit % (Last ${titleResolution})`;
-  setTradeTierDashboardMeta(titleResolution, resolutionLabel);
-  tokenPnlSelectedTitle.textContent = `PnL distribution (Last ${titleResolution})`;
-  tokenTradesCountSelectedTitle.textContent = `Trades count distribution (Last ${titleResolution})`;
+  syncTokenSupplySectionHeadingsForResolution();
   applySelectedTradesVerticalRowVisibility();
   applyTokenTopPnl24hColumnVisibility();
+});
+
+tokenTopPnlLimit.addEventListener('change', () => {
+  syncTokenSupplySectionHeadingsForResolution();
 });
 
 walletTopTradersResolution.addEventListener('change', () => {
@@ -3209,13 +3602,7 @@ window.addEventListener('resize', () => {
   syncWalletPieStackHeights();
 });
 
-const initialResolutionLabel = formatResolutionSectionLabel(tokenTopPnlResolution.value);
-const initialTitleResolution = formatResolutionForTitle(initialResolutionLabel);
-tokenSupplySelectedTitle.textContent = initialResolutionLabel;
-tokenTopVolumeSelectedTitle.textContent = `Volume by profit % (Last ${initialTitleResolution})`;
-setTradeTierDashboardMeta(initialTitleResolution, initialResolutionLabel);
-tokenPnlSelectedTitle.textContent = `PnL distribution (Last ${initialTitleResolution})`;
-tokenTradesCountSelectedTitle.textContent = `Trades count distribution (Last ${initialTitleResolution})`;
+syncTokenSupplySectionHeadingsForResolution();
 lastTokenResolutionBeforeWalletSwitch = normalizeTokenResolution(tokenTopPnlResolution.value);
 walletTopTradersResolution.value = getWalletResolution();
 applyWalletTopTradersTitle();
