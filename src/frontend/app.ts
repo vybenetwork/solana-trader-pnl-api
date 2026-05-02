@@ -2123,10 +2123,11 @@ function setTradeTierDashboardMeta(titleResolution: string, resolutionLabel: str
     tokenVolumePnlLede.textContent = `Top ${lim} (${resolutionLabel}). Dollar volume split by realized PnL band.`;
   }
   if (tokenTradeTierFooterMethodology) {
-    tokenTradeTierFooterMethodology.textContent = 'Slice ∝ trades per tier; edges align with trade-count bars.';
+    tokenTradeTierFooterMethodology.textContent =
+      'Listed trade count by activity tier among profitable wallets; slice ∝ each tier’s share of total trades.';
   }
   if (tokenTradeTierFooterScope) {
-    tokenTradeTierFooterScope.textContent = `Top ${lim} (${resolutionLabel}). Trades pie & bars here; volume card below.`;
+    tokenTradeTierFooterScope.textContent = `Top ${lim} (${resolutionLabel}). Trade-share pie and tier bars on this card; volume donut and PnL bars in the card below.`;
   }
   if (tokenSupplyCardDescPnl) {
     tokenSupplyCardDescPnl.textContent = `Traders per realized PnL band (top ${lim}, ${resolutionLabel}).`;
@@ -2138,10 +2139,11 @@ function setTradeTierDashboardMeta(titleResolution: string, resolutionLabel: str
     tokenTradeTierTimeframe.textContent = resolutionLabel;
   }
   if (tokenVolumePnlFooterMethodology) {
-    tokenVolumePnlFooterMethodology.textContent = 'Listed volume by merged PnL band; slice ∝ band USD share.';
+    tokenVolumePnlFooterMethodology.textContent =
+      'Listed volume by merged realized PnL band; slice ∝ each band’s share of total traded USD.';
   }
   if (tokenVolumePnlFooterScope) {
-    tokenVolumePnlFooterScope.textContent = `Top ${lim} (${resolutionLabel}). Volume + PnL bars here; trade-share above.`;
+    tokenVolumePnlFooterScope.textContent = `Top ${lim} (${resolutionLabel}). Volume donut and PnL bars on this card; trade-share tiers in the card above.`;
   }
   if (tokenVolumePnlTimeframe) {
     tokenVolumePnlTimeframe.textContent = resolutionLabel;

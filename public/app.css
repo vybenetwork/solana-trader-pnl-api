@@ -1822,7 +1822,7 @@ button:active {
 /* Profitable traders by activity — dashboard layout */
 .token-trade-tier-dash__top {
   display: grid;
-  grid-template-columns: 1fr minmax(188px, 340px);
+  grid-template-columns: 1fr minmax(188px, 380px);
   gap: 1rem 1.25rem;
   align-items: start;
   margin-bottom: 1rem;
@@ -1900,7 +1900,7 @@ button:active {
 }
 
 .token-trade-tier-dash__chart-note--volume-share {
-  margin-right: 40px;
+  margin-right: 40px !important;
 }
 
 .token-trade-tier-dash__note-ico {
