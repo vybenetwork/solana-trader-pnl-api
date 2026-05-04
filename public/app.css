@@ -1707,6 +1707,11 @@ button:active {
   letter-spacing: 0.02em;
 }
 
+/* Dashboard tier cards set --tier-accent from pie slice; match Total volume / Total trades numerator to segment. */
+.token-tier-card .token-tier-metric__vol-pnl-slice-val {
+  color: var(--tier-accent, #e0f2fe);
+}
+
 .token-tier-metric__vol-pnl-totalvol-suffix {
   font-size: 0.58rem;
   font-weight: 500;
