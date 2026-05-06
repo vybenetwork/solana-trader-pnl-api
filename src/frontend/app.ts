@@ -981,6 +981,63 @@ function walletPieCountUnitWord(pieTitle: string): string {
   return t.includes('position') ? 'positions' : 'trades';
 }
 
+type WalletPieHubKind = 'positions' | 'trades';
+
+/** Same normalization as {@link renderWalletPieCard} conic gradient slices. */
+function normalizedWalletPieSlices(slices: WalletPieSlice[]): {
+  pctSlices: number[];
+  fills: PieSliceSpec[];
+  total: number;
+} | null {
+  const normalized = slices
+    .map((slice) => ({ ...slice, value: Math.max(0, Number(slice.value) || 0) }))
+    .filter((slice) => slice.value > 0);
+  const total = normalized.reduce((sum, slice) => sum + slice.value, 0);
+  if (total <= 0) return null;
+  return {
+    pctSlices: normalized.map((slice) => (slice.value / total) * 100),
+    fills: normalized.map((slice) => slice.color),
+    total,
+  };
+}
+
+function walletPieHubSubline(kind: WalletPieHubKind, total: number): string {
+  const n = formatIntFull(total);
+  return kind === 'positions' ? `${n} positions` : `${n} trades`;
+}
+
+/**
+ * Wallet donut charts share token-mode SVG slice labels + center hub ({@link mountDonutPieOverlays}).
+ */
+function mountWalletPieDonutOverlays(
+  root: HTMLElement,
+  configs: { slices: WalletPieSlice[]; hubKind: WalletPieHubKind }[]
+): void {
+  const pies = root.querySelectorAll<HTMLElement>(
+    '.wallet-pnl-card--pie .wallet-pnl-pie-chart.token-supply-pie'
+  );
+  pies.forEach((pie, i) => {
+    const cfg = configs[i];
+    clearDonutPieOverlays(pie);
+    if (!cfg) {
+      pie.style.background = buildPieGradientWithGaps([1], ['#27272a']);
+      mountDonutPieCenterHub(pie, { mock: true, hubSubline: '—' });
+      return;
+    }
+    const norm = normalizedWalletPieSlices(cfg.slices);
+    if (!norm) {
+      pie.style.background = buildPieGradientWithGaps([1], ['#27272a']);
+      mountDonutPieCenterHub(pie, { mock: true, hubSubline: '—' });
+      return;
+    }
+    pie.style.background = buildPieGradientWithGaps(norm.pctSlices, norm.fills);
+    mountDonutPieOverlays(pie, norm.pctSlices, norm.fills, {
+      mock: false,
+      hubSubline: walletPieHubSubline(cfg.hubKind, norm.total),
+    });
+  });
+}
+
 /** >1× green/up, ~1× yellow/O, <1× red/down (same ε as gain-ratio grouping). */
 function walletPieAvgGainTone(mult: number): 'up' | 'flat' | 'down' {
   if (mult > 1 + GAIN_ONE_X_EPS) return 'up';
@@ -1087,7 +1144,7 @@ function renderWalletPieCard(title: string, slices: WalletPieSlice[]): string {
     return `<section class="token-stats-group wallet-pnl-card wallet-pnl-card--pie">
       <h3 class="token-stats-group-title"><span>${title}</span></h3>
       <div class="wallet-pnl-pie-wrap">
-        <div class="wallet-pnl-pie-chart" role="img" aria-label="${title}" style="background:${emptyBg}"></div>
+        <div class="wallet-pnl-pie-chart token-supply-pie token-supply-pie--donut-labels" role="img" aria-label="${title}" style="background:${emptyBg}"></div>
         <div class="wallet-pnl-pie-legend token-supply-legend token-supply-legend--tier-dashboard wallet-pnl-pie-legend--tier-match">${legendHtml}</div>
       </div>
     </section>`;
@@ -1117,7 +1174,7 @@ function renderWalletPieCard(title: string, slices: WalletPieSlice[]): string {
   return `<section class="token-stats-group wallet-pnl-card wallet-pnl-card--pie">
     <h3 class="token-stats-group-title"><span>${title}</span></h3>
     <div class="wallet-pnl-pie-wrap">
-      <div class="wallet-pnl-pie-chart" role="img" aria-label="${title}" style="background:${pieGradient}"></div>
+      <div class="wallet-pnl-pie-chart token-supply-pie token-supply-pie--donut-labels" role="img" aria-label="${title}" style="background:${pieGradient}"></div>
       <div class="wallet-pnl-pie-legend token-supply-legend token-supply-legend--tier-dashboard wallet-pnl-pie-legend--tier-match">${legendHtml}</div>
     </div>
   </section>`;
@@ -2141,6 +2198,10 @@ function renderWalletPnl(
     <div class="wallet-pnl-sections">${walletProfileHtml}${tokenHighlightsHtml}${pieStackHtml}</div>
     <div class="wallet-pnl-trend-col">${pnlTradingHtml}${pnlTrendHtml}</div>
   </div>${assetsTableHtml}`;
+  mountWalletPieDonutOverlays(walletPnlDetails, [
+    { slices: statusSlices, hubKind: 'positions' },
+    { slices: winningLosingTradeSlices, hubKind: 'trades' },
+  ]);
   requestAnimationFrame(() => syncWalletPieStackHeights());
 }
 
@@ -2474,7 +2535,7 @@ function renderPieLegendVolumePnlCard(
   const volTotal = formatUsdFull(totalVolUsdAll);
   const title = escapeHtmlText(label);
   return `<div class="token-supply-legend-item token-supply-legend-item--tier-dashboard">
-    <article class="token-tier-card" style="--tier-accent:${accent}">
+    <article class="token-tier-card" style="--tier-accent:${accent};--tier-swatch:${accent}">
       <h4 class="token-tier-card__title">${title}</h4>
       <ul class="token-tier-card__metrics">
         <li class="token-tier-metric">
@@ -2520,7 +2581,7 @@ function renderPieLegendVolumePnlCardPlaceholder(fill: PieSliceSpec): string {
   const accent = pieSliceAccentSolid(fill);
   const swatchBg = pieSliceLegendBackground(fill);
   return `<div class="token-supply-legend-item token-supply-legend-item--tier-dashboard">
-    <article class="token-tier-card token-tier-card--placeholder" style="--tier-accent:${accent}">
+    <article class="token-tier-card token-tier-card--placeholder" style="--tier-accent:${accent};--tier-swatch:${accent}">
       <h4 class="token-tier-card__title">${dash}</h4>
       <ul class="token-tier-card__metrics">
         <li class="token-tier-metric"><span class="token-tier-metric__ico token-tier-metric__ico--share-swatch" style="--tier-swatch:${swatchBg}" aria-hidden="true"></span><div class="token-tier-metric__body"><span class="token-tier-metric__muted">${dash}</span></div></li>
@@ -2550,7 +2611,7 @@ function renderPieLegendTradeTierRow(
   const accent = pieSliceAccentSolid(fill);
   const swatchBg = pieSliceLegendBackground(fill);
   return `<div class="token-supply-legend-item token-supply-legend-item--tier-dashboard">
-    <article class="token-tier-card" style="--tier-accent:${accent}">
+    <article class="token-tier-card" style="--tier-accent:${accent};--tier-swatch:${accent}">
       <h4 class="token-tier-card__title">${title}</h4>
       <ul class="token-tier-card__metrics">
         <li class="token-tier-metric">
@@ -2596,7 +2657,7 @@ function renderTierPieLegendPlaceholder(fill: PieSliceSpec): string {
   const accent = pieSliceAccentSolid(fill);
   const swatchBg = pieSliceLegendBackground(fill);
   return `<div class="token-supply-legend-item token-supply-legend-item--tier-dashboard">
-    <article class="token-tier-card token-tier-card--placeholder" style="--tier-accent:${accent}">
+    <article class="token-tier-card token-tier-card--placeholder" style="--tier-accent:${accent};--tier-swatch:${accent}">
       <h4 class="token-tier-card__title">${dash}</h4>
       <ul class="token-tier-card__metrics">
         <li class="token-tier-metric"><span class="token-tier-metric__ico token-tier-metric__ico--share-swatch" style="--tier-swatch:${swatchBg}" aria-hidden="true"></span><div class="token-tier-metric__body"><span class="token-tier-metric__muted">${dash}</span></div></li>
@@ -3987,6 +4048,10 @@ topTradersMeta.hidden = true;
 topTradersCards.hidden = true;
 walletPnlMeta.textContent = '—';
 walletPnlDetails.innerHTML = buildWalletPnlPlaceholder();
+mountWalletPieDonutOverlays(walletPnlDetails, [
+  { slices: [], hubKind: 'positions' },
+  { slices: [], hubKind: 'trades' },
+]);
 requestAnimationFrame(() => syncWalletPieStackHeights());
 applyTokenModePlaceholder();
 tokenTopPnlBody.innerHTML = buildTokenTopPnlPlaceholderRowsHtml();
