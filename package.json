@@ -1,7 +1,7 @@
 {
-  "name": "solana-top-traders-wallets-and-tokens-api",
+  "name": "solana-wallet-pnl-profit-and-loss-api",
   "version": "1.0.0",
-  "description": "Solana Top Traders Wallets & Tokens API demo — Vybe API",
+  "description": "Solana wallet PnL demo — wallet search, related wallets, and per-wallet PnL via Vybe API",
   "type": "module",
   "main": "dist/server.js",
   "scripts": {
@@ -15,7 +15,7 @@
     "prestart": "npm run build:frontend",
     "bench:trades": "tsx scripts/bench-trades.ts"
   },
-  "keywords": ["solana", "top-traders", "wallets", "tokens", "vybe", "api"],
+  "keywords": ["solana", "wallet-pnl", "vybe", "profit-and-loss", "wallets", "api"],
   "license": "MIT",
   "dependencies": {
     "@solana/web3.js": "1.98.4",

@@ -24,6 +24,13 @@ html {
   overflow-x: auto;
 }
 
+/* Wallet-only build: legacy token analytics DOM kept for script hooks but never shown */
+#tokenSection,
+#tokenSupplyPanelTotal,
+#tokenTopPnlSection {
+  display: none !important;
+}
+
 body {
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   margin: 0;
@@ -33,7 +40,7 @@ body {
   color: #e4e4e7;
   min-height: 100vh;
   /* Lock desktop-style layouts site-wide; narrow viewports scroll horizontally. */
-  min-width: 1100px;
+  min-width: 920px;
 }
 
 .container {
@@ -189,7 +196,9 @@ body {
 }
 
 #mint {
-  min-width: 420px;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 #walletLabel,
@@ -445,7 +454,12 @@ body {
 }
 
 .remote-top-row {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+}
+
+.remote-top-row .endpoint-mode-field {
+  flex: 0 0 auto;
+  min-width: 0;
 }
 
 .remote-top-row .top-mode-switch {
@@ -454,7 +468,7 @@ body {
 }
 
 .remote-top-row .mint-query-field {
-  flex: 0 0 auto;
+  flex: 1 1 200px;
   min-width: 0;
   max-width: none;
 }
@@ -466,8 +480,9 @@ body {
 
 .remote-top-row .mint-query-field .field-control,
 .remote-top-row .mint-query-field input {
-  width: 420px;
-  min-width: 420px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .remote-top-row .wallet-resolution-field select {
@@ -2470,7 +2485,7 @@ button:active {
   overflow-y: auto;
 }
 
-/* Sticky header row for Top traders and Top holders */
+/* Sticky header row for related wallets and top holders */
 .top-traders-section .table-wrap thead th,
 .holders-section .table-wrap thead th {
   position: sticky;
@@ -3494,7 +3509,7 @@ td .mono {
   word-break: break-all;
 }
 
-/* Numeric columns: right-align header and cells so they line up (Top traders, Holders) */
+/* Numeric columns: right-align header and cells (related wallets, holders) */
 #topTradersTable th:nth-child(4),
 #topTradersTable td:nth-child(4),
 #topTradersTable th:nth-child(5),
@@ -3571,4 +3586,35 @@ html {
 *::-webkit-scrollbar-thumb {
   background-color: #71717a;
   border-radius: 999px;
+}
+
+/* Endpoint bar stays visible in historical mode so users can switch back */
+.inputs-endpoint-mode-bar {
+  margin-bottom: 1rem;
+}
+
+.construction-callout {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(234, 179, 8, 0.45);
+  background: rgba(234, 179, 8, 0.1);
+  color: #fde68a;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.construction-callout strong {
+  color: #fef08a;
+}
+
+/* Endpoint mode: lock + realtime/historical, inline left of wallet search */
+.site-header__endpoint-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.35rem;
+  opacity: 0.85;
 }

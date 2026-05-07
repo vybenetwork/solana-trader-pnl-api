@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Solana Top Traders Wallets & Tokens</title>
-  <link rel="stylesheet" href="app.css?v=212" />
+
+  <title>Wallet PnL · Vybe</title>
+  <link rel="stylesheet" href="app.css?v=217" />
+
 </head>
 <body>
   <div class="container">
@@ -13,46 +15,52 @@
         <span class="site-header__logo">Vybe</span>
         <span class="site-header__badge">Data API</span>
       </div>
-      <h1 class="site-header__title">Top traders · wallets &amp; tokens</h1>
+
+      <h1 class="site-header__title">Wallet PnL</h1>
       <p class="site-header__subtitle wallet-pnl-pnl-trading-lede">
-        Discover Solana trading intelligence by mint or wallet using Vybe Network APIs — same institutional-grade data as
+        Wallet search, per-wallet PnL, and related wallets (by realized PnL) via Vybe — same data tier as
+
         <a href="https://vybenetwork.com" target="_blank" rel="noopener noreferrer">vybenetwork.com</a>.
       </p>
     </header>
 
     <section class="inputs panel">
-      <div class="section-header">
-        <h2 class="token-stats-group-title">Remote filters</h2>
-      </div>
-      <p class="remote-filters-help wallet-pnl-pnl-trading-lede">
-        <strong>Remote filters</strong> map directly to Vybe query params for Wallet Top Traders and Token Top PnL Traders.
-      </p>
-
-      <div class="candles-mint-resolution-row remote-top-row">
-        <div class="field field-switch top-mode-switch">
-          <div class="field-switch-header">
-            <span class="label-icon field-icon icon-user" aria-hidden="true"></span>
-            <span class="field-switch-title">Top traders mode</span>
-          </div>
+      <div class="candles-mint-resolution-row remote-top-row inputs-endpoint-mode-bar" id="endpointModeBar">
+        <div class="field endpoint-mode-field site-header__endpoint">
+          <label class="site-header__endpoint-label">Endpoint mode</label>
           <div class="trades-fetch-control">
-            <label class="trades-fetch-switch" id="searchModeSwitchLabel" title="Token or Wallet search mode">
-              <input type="checkbox" id="searchModeWallet" class="trades-fetch-switch-input" />
+            <button type="button" class="trades-fetch-lock" id="endpointModeLock" title="Lock current endpoint mode" aria-pressed="false" aria-label="Lock mode switch">
+              <svg class="trades-fetch-lock-icon trades-fetch-lock-icon--locked" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z"></path><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <svg class="trades-fetch-lock-icon trades-fetch-lock-icon--unlocked" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z"></path><path d="M7 11V7a5 5 0 0 1 5.5-5 5 5 0 0 1 4.5 3"></path></svg>
+            </button>
+            <label class="trades-fetch-switch" id="endpointModeSwitchLabel" title="Switch between Realtime (wallet PnL + related wallets) and Historical (PnL timeseries — under construction).">
+              <input type="checkbox" id="endpointModeHistorical" class="trades-fetch-switch-input" />
               <span class="trades-fetch-switch-track">
-                <span class="trades-fetch-switch-option" data-value="single">Token</span>
-                <span class="trades-fetch-switch-option" data-value="paged">Wallet</span>
+                <span class="trades-fetch-switch-option" data-value="single">Realtime</span>
+                <span class="trades-fetch-switch-option" data-value="paged">Historical</span>
               </span>
             </label>
           </div>
         </div>
+      </div>
 
+      <div id="realtimeExclusiveSurface">
+      <div class="section-header">
+        <h2 class="token-stats-group-title">Remote filters</h2>
+      </div>
+      <p class="remote-filters-help wallet-pnl-pnl-trading-lede">
+        <strong>Remote filters</strong> map directly to Vybe query params for wallet PnL and the related-wallets leaderboard.
+      </p>
+
+      <div class="candles-mint-resolution-row remote-top-row">
         <div class="field mint-query-field">
           <label for="mint" id="searchInputLabel">
-            <span class="label-icon field-icon icon-tag" aria-hidden="true"></span>
-            Token mint address
+            <span class="label-icon field-icon icon-user" aria-hidden="true"></span>
+            Wallet address or name (ilikeFilter)
           </label>
           <div class="field-control">
-            <span class="field-icon icon-tag" aria-hidden="true"></span>
-            <input type="text" id="mint" placeholder="e.g. DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263" value="DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263" />
+            <span class="field-icon icon-user" aria-hidden="true"></span>
+            <input type="text" id="mint" placeholder="e.g. wallet address or partial name" value="CyaE1VxvBrahnPWkqm5VsdCvyS2QmNht2UFrKJHga54o" />
           </div>
         </div>
 
@@ -92,41 +100,20 @@
             </select>
           </div>
         </div>
-
-        <div class="field wallet-resolution-field resolution-inline-field token-only-control">
-          <label for="tokenTopPnlResolution">
-            <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
-            Resolution
-          </label>
-          <div class="field-control">
-            <span class="field-icon icon-grid" aria-hidden="true"></span>
-            <select id="tokenTopPnlResolution">
-              <option value="1d">1d</option>
-              <option value="7d">7d</option>
-              <option value="30d" selected>30d</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field token-only-control">
-          <label for="tokenTopPnlSortField">
-            <span class="label-icon field-icon icon-sort" aria-hidden="true"></span>
-            Sort Field
-          </label>
-          <div class="field-control">
-            <span class="field-icon icon-sort" aria-hidden="true"></span>
-            <select id="tokenTopPnlSortField">
-              <option value="realizedPnlUsd" selected>realizedPnlUsd</option>
-              <option value="traderAddress">traderAddress</option>
-              <option value="totalVolumeUsd">totalVolumeUsd</option>
-              <option value="tradesCount">tradesCount</option>
-            </select>
-          </div>
-        </div>
       </div>
 
       <div class="candles-mint-resolution-row wallet-only-row" id="walletControlsRow">
-        <div id="walletActionsTarget" class="inline-actions-target wallet-fetch-slot"></div>
+        <div id="walletActionsTarget" class="inline-actions-target wallet-fetch-slot">
+          <div class="field inline-row-actions" id="fetchActions">
+            <label for="fetchAll">
+              <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
+              Action
+            </label>
+            <div class="actions-buttons">
+              <button type="button" id="fetchAll" class="fetch-btn-attention">Load wallet PnL</button>
+            </div>
+          </div>
+        </div>
 
         <div class="field" id="walletLabelField">
           <label for="walletLabel">
@@ -183,7 +170,12 @@
           </div>
         </div>
 
-        <div id="walletLoadingSlot" class="inline-actions-target wallet-fetch-slot"></div>
+        <div id="walletLoadingSlot" class="inline-actions-target wallet-fetch-slot">
+          <div class="loading" id="loadingIndicator" hidden aria-hidden="true">
+            <span class="loading-spinner"></span>
+            <span class="loading-text">Loading…</span>
+          </div>
+        </div>
 
         <div class="field" id="walletPageField">
           <label for="walletPage">
@@ -196,72 +188,28 @@
           </div>
         </div>
       </div>
-
-      <div class="candles-mint-resolution-row token-only-controls" id="tokenOnlyControls">
-        <div id="tokenFetchSlot" class="inline-actions-target token-fetch-slot">
-          <div class="field inline-row-actions" id="fetchActions">
-            <label for="fetchAll">
-              <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
-              Action
-            </label>
-            <div class="actions-buttons">
-              <button type="button" id="fetchAll" class="fetch-btn-attention">Load token analytics</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="tokenTopPnlSortDirection">
-            <span class="label-icon field-icon icon-sort" aria-hidden="true"></span>
-            Sort Direction
-          </label>
-          <div class="field-control">
-            <span class="field-icon icon-sort" aria-hidden="true"></span>
-            <select id="tokenTopPnlSortDirection">
-              <option value="desc" selected>sortByDesc</option>
-              <option value="asc">sortByAsc</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="tokenTopPnlLimit">
-            <span class="label-icon field-icon icon-hash" aria-hidden="true"></span>
-            limit
-          </label>
-          <div class="field-control">
-            <span class="field-icon icon-hash" aria-hidden="true"></span>
-            <select id="tokenTopPnlLimit">
-              <option value="100">100</option>
-              <option value="250">250</option>
-              <option value="500">500</option>
-              <option value="1000" selected>1000</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="tokenTopPnlPage">
-            <span class="label-icon field-icon icon-pages" aria-hidden="true"></span>
-            Page
-          </label>
-          <div class="field-control">
-            <span class="field-icon icon-pages" aria-hidden="true"></span>
-            <input type="number" id="tokenTopPnlPage" min="0" step="1" value="0" />
-          </div>
-        </div>
-
-        <div id="tokenLoadingSlot" class="inline-actions-target token-fetch-slot">
-          <div class="loading" id="loadingIndicator" hidden aria-hidden="true">
-            <span class="loading-spinner"></span>
-            <span class="loading-text">Loading…</span>
-          </div>
-        </div>
-
       </div>
+
+      <div id="historicalInputsBlock" hidden>
+        <p class="construction-callout" role="status">
+          <strong>Under construction.</strong> Historical wallet PnL timeseries is not available in the UI yet. Switch to <strong>Realtime</strong> to use wallet PnL and related wallets.
+        </p>
+        <div class="field">
+          <label for="histWalletAddress">Wallet address</label>
+          <input type="text" id="histWalletAddress" placeholder="e.g. full wallet address for timeseries" />
+        </div>
+        <div class="field">
+          <label for="histResolution">Resolution</label>
+          <select id="histResolution"></select>
+        </div>
+        <div class="actions">
+          <button type="button" id="fetchHistoricalPnl">Load wallet PnL (historical)</button>
+        </div>
+      </div>
+
     </section>
 
-    <section class="token-section panel" id="tokenSection">
+    <section class="token-section panel" id="tokenSection" hidden>
       <div class="section-header">
         <h2 class="token-stats-group-title">Token stats & metadata</h2>
         <div class="section-loading" id="tokenSectionLoading" hidden aria-hidden="true">
@@ -288,7 +236,7 @@
       </div>
     </section>
 
-    <section class="panel token-supply-panel" id="tokenSupplyPanelTotal">
+    <section class="panel token-supply-panel" id="tokenSupplyPanelTotal" hidden>
       <div class="section-header token-supply-period-header">
         <h2 class="token-supply-period-title token-stats-group-title" id="tokenSupplySelectedTitle">30 Days</h2>
       </div>
@@ -424,7 +372,7 @@
 
     <section class="top-traders-section panel" id="topTradersSection">
       <div class="section-header">
-        <h2 class="token-stats-group-title" id="walletTopTradersTitle">Top traders (by realized PnL, 30d)</h2>
+        <h2 class="token-stats-group-title" id="walletTopTradersTitle">Related wallets (by realized PnL, 30d)</h2>
         <div class="section-loading" id="topTradersLoading" hidden aria-hidden="true">
           <span class="loading-spinner"></span>
           <span class="loading-text">Loading…</span>
@@ -435,7 +383,7 @@
         <p class="wallet-pnl-pnl-trading-lede" id="topTradersMeta">—</p>
         <div class="wallet-top-traders-grid" id="topTradersCards">
           <section class="token-stats-group wallet-top-trader-card">
-            <h3 class="token-stats-group-title"><span>Top trader</span></h3>
+            <h3 class="token-stats-group-title"><span>Wallet</span></h3>
             <dl class="token-stats">
               <dt>Account</dt><dd>—</dd>
               <dt>Realized PnL</dt><dd>—</dd>
@@ -460,7 +408,7 @@
       </div>
     </section>
 
-    <section class="top-traders-section panel token-top-pnl-section" id="tokenTopPnlSection">
+    <section class="top-traders-section panel token-top-pnl-section" id="tokenTopPnlSection" hidden>
       <div class="section-header">
         <h2 class="token-stats-group-title">Top PnL traders (by token)</h2>
         <div class="section-loading" id="tokenTopPnlLoading" hidden aria-hidden="true">
@@ -495,11 +443,44 @@
       </div>
     </section>
 
+    <section class="panel" id="histPnlSection" hidden>
+      <div class="section-header">
+        <h2 class="token-stats-group-title" id="histPnlHeading">Wallet PnL (historical · under construction)</h2>
+      </div>
+      <p class="meta" id="histPnlMeta">—</p>
+      <div class="table-wrap">
+        <table id="histPnlTable">
+          <thead id="histPnlTableHead"></thead>
+          <tbody id="histPnlTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="error panel" id="errorSection" hidden>
       <h2 class="token-stats-group-title">Error</h2>
       <pre id="errorText"></pre>
     </section>
   </div>
-  <script src="app.js?v=216"></script>
+
+  <div id="wallet-only-token-param-stub" hidden aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none">
+    <select id="tokenTopPnlResolution">
+      <option value="1d">1d</option>
+      <option value="7d">7d</option>
+      <option value="30d" selected>30d</option>
+    </select>
+    <select id="tokenTopPnlSortField">
+      <option value="realizedPnlUsd" selected>realizedPnlUsd</option>
+    </select>
+    <select id="tokenTopPnlSortDirection">
+      <option value="desc" selected>sortByDesc</option>
+    </select>
+    <input id="tokenTopPnlPage" type="number" value="0" />
+    <select id="tokenTopPnlLimit">
+      <option value="1000" selected>1000</option>
+    </select>
+  </div>
+
+  <script src="app.js?v=220"></script>
+
 </body>
 </html>

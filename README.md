@@ -1,25 +1,23 @@
-# Solana Top Traders Wallets & Tokens API
+# Solana wallet PnL (Vybe API)
 
-This repository fetches Solana top traders ranked by realized PnL, win rate, and volume using Vybe API data. It includes a Node.js backend and browser app focused on discovering high-performing wallets by either token mint or wallet search.
+Browser app and small Node server for **wallet-scoped PnL**: search by wallet address or name (`ilikeFilter`), load **per-wallet PnL** from Vybe, and list **related wallets** ranked by realized PnL for the same resolution window (backed by `GET /v4/wallets/top-traders`).
 
-![Solana Top Traders Wallets & Tokens API](screenshots/solana-top-traders-wallets-and-tokens-api.png)
+![Wallet PnL demo](screenshots/solana-top-traders-wallets-and-tokens-api.png)
 
-<p align="center">
-  <img src="screenshots/top-traders-token-mode-solana-api.png" alt="Top traders by token" width="260" style="min-width:260px;max-width:260px;margin-right:10px;" />
-  <img src="screenshots/top-traders-wallet-mode-solana-api.png" alt="Top traders by wallet" width="224" style="min-width:224px;max-width:224px;margin-right:10px;" />
-  <img src="screenshots/top-traders-solana-leaderboard-api.png" alt="Top traders leaderboard" width="260" style="min-width:260px;max-width:260px;" />
-</p>
+## Historical mode
+
+**Historical wallet PnL timeseries** (PnL over time buckets) is **under construction** in the UI. Use **Realtime** for the working flow. The backend may still expose `/api/wallets/:owner/pnl-ts` for experiments; the in-app historical tab is disabled until the feature is finished.
 
 ## Prerequisites
 
 - **Node.js** >= 20
 - **npm** >= 10
 
-## Quick Start
+## Quick start
 
 ```bash
-git clone https://github.com/<your-org>/solana-top-traders-wallets-and-tokens-api.git
-cd solana-top-traders-wallets-and-tokens-api
+git clone https://github.com/<your-org>/solana-wallet-pnl-profit-and-loss-api.git
+cd solana-wallet-pnl-profit-and-loss-api
 npm install
 cp .env.example .env
 # Set VYBE_API_KEY in .env
@@ -28,7 +26,7 @@ npm start
 
 Then open `http://localhost:3000`.
 
-## Environment Variables
+## Environment variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
@@ -37,27 +35,24 @@ Then open `http://localhost:3000`.
 | `PORT` | No | Server port (default `3000`) |
 | `TUNNEL` | No | Set `1` to run with Cloudflare Tunnel |
 
-## What This Repo Focuses On
+## What the app does (realtime)
 
-- Top traders leaderboard from `GET /v4/wallets/top-traders`
-- Search mode switch in UI:
-  - **Token mode**: uses `mintAddress`
-  - **Wallet mode**: uses `ilikeFilter` for wallet name/address matching
-- Last trades context tables (programs, quote mints, markets)
-- Token context panels and holder table for supporting token research
+- **Wallet search** — query params map to Vybe `ilikeFilter` / wallet PnL filters.
+- **Related wallets grid** — wallets returned for the same search, ranked by realized PnL for the selected resolution (1d / 7d / 30d).
+- **Wallet PnL summary** — realized / unrealized PnL, trades, win rate, and richer layout when data is available.
 
-## Main Endpoints Used
+## Main Vybe routes used
 
 - `GET /v4/wallets/top-traders`
-- `GET /v4/trades`
+- `GET /v4/wallets/{ownerAddress}/pnl` (and related wallet PnL fields in the UI)
+- `GET /v4/trades` (supporting context where applicable)
 - `GET /v4/programs/labeled-program-accounts`
-- `GET /v4/tokens/{mintAddress}`
-- `GET /v4/tokens/{mintAddress}/top-holders`
+- `GET /v4/tokens/{mintAddress}` (legacy token panels are hidden in this wallet-only build)
 
-## Project Structure
+## Project structure
 
 ```text
-solana-top-traders-wallets-and-tokens-api/
+solana-wallet-pnl-profit-and-loss-api/
 ├── README.md
 ├── package.json
 ├── public/
@@ -73,7 +68,6 @@ solana-top-traders-wallets-and-tokens-api/
 
 ## Notes
 
-- Keep screenshot files in `screenshots/` with the placeholder names above.
-- Replace GitHub clone URL with your final org/user path.
-- Get a key at [vybenetwork.com/pricing](https://vybenetwork.com/pricing).
-
+- Screenshot paths under `screenshots/` may still use older filenames; replace when you refresh assets.
+- Replace the GitHub clone URL with your org or fork.
+- API keys: [vybenetwork.com/pricing](https://vybenetwork.com/pricing).

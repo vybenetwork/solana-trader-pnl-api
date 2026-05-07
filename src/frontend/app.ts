@@ -193,16 +193,11 @@ type SortDirection = 'asc' | 'desc';
 
 const mintInput = document.getElementById('mint') as HTMLInputElement;
 const searchInputLabel = document.getElementById('searchInputLabel') as HTMLElement;
-const searchModeWallet = document.getElementById('searchModeWallet') as HTMLInputElement;
-const searchModeSwitchLabel = document.getElementById('searchModeSwitchLabel') as HTMLElement;
 const fetchActions = document.getElementById('fetchActions') as HTMLElement;
 const walletActionsTarget = document.getElementById('walletActionsTarget') as HTMLElement;
-const tokenFetchSlot = document.getElementById('tokenFetchSlot') as HTMLElement;
-const tokenLoadingSlot = document.getElementById('tokenLoadingSlot') as HTMLElement;
 const walletLoadingSlot = document.getElementById('walletLoadingSlot') as HTMLElement;
 const fetchAllBtn = document.getElementById('fetchAll') as HTMLButtonElement;
 const loadingIndicator = document.getElementById('loadingIndicator') as HTMLElement;
-const tokenOnlyControls = document.getElementById('tokenOnlyControls') as HTMLElement;
 const walletLabelField = document.getElementById('walletLabelField') as HTMLElement;
 const walletPageField = document.getElementById('walletPageField') as HTMLElement;
 
@@ -276,6 +271,27 @@ const tokenTopPnl24hVolumeHeader = document.getElementById('tokenTopPnl24hVolume
 const tokenTopPnlTradesHeader = document.getElementById('tokenTopPnlTradesHeader') as HTMLElement;
 const tokenTopPnl24hTradesHeader = document.getElementById('tokenTopPnl24hTradesHeader') as HTMLElement;
 
+type EndpointMode = 'realtime' | 'historical';
+const endpointModeLock = document.getElementById('endpointModeLock') as HTMLButtonElement;
+const endpointModeHistorical = document.getElementById('endpointModeHistorical') as HTMLInputElement;
+const endpointModeSwitchLabel = document.getElementById('endpointModeSwitchLabel') as HTMLElement;
+const realtimeExclusiveSurface = document.getElementById('realtimeExclusiveSurface') as HTMLElement;
+const historicalInputsBlock = document.getElementById('historicalInputsBlock') as HTMLElement;
+const histWalletAddress = document.getElementById('histWalletAddress') as HTMLInputElement;
+const histResolution = document.getElementById('histResolution') as HTMLSelectElement;
+const fetchHistoricalPnlBtn = document.getElementById('fetchHistoricalPnl') as HTMLButtonElement;
+const histPnlSection = document.getElementById('histPnlSection') as HTMLElement;
+const histPnlMeta = document.getElementById('histPnlMeta') as HTMLElement;
+const histPnlTableHead = document.getElementById('histPnlTableHead') as HTMLElement;
+const histPnlTableBody = document.getElementById('histPnlTableBody') as HTMLElement;
+
+const MODE_STORAGE_KEY = 'walletPnlEndpointMode';
+const MODE_LOCKED_STORAGE_KEY = 'walletPnlEndpointModeLocked';
+const HIST_RES_STORAGE_KEY = 'walletPnlHistResolution';
+
+/** When true, historical PnL timeseries UI is disabled and requests are not sent. */
+const HISTORICAL_WALLET_PNL_UNDER_CONSTRUCTION = true;
+
 const SEARCH_MODE_KEY = 'topTradersSearchMode';
 const MAX_FETCH_RETRIES = 5;
 const FETCH_RETRY_DELAY_MS = 2000;
@@ -330,7 +346,7 @@ function getTokenResolutionAfterWalletSwitch(): string {
 }
 
 function applyWalletTopTradersTitle(): void {
-  walletTopTradersTitle.textContent = `Top traders (by realized PnL, ${getWalletResolution()})`;
+  walletTopTradersTitle.textContent = `Related wallets (by realized PnL, ${getWalletResolution()})`;
 }
 
 function normalizeWalletResolution(value: string): string {
@@ -344,11 +360,11 @@ function getWalletResolution(): string {
 }
 
 function getSearchMode(): SearchMode {
-  return localStorage.getItem(SEARCH_MODE_KEY) === 'wallet' ? 'wallet' : 'token';
+  return 'wallet';
 }
 
-function setSearchMode(mode: SearchMode): void {
-  localStorage.setItem(SEARCH_MODE_KEY, mode);
+function setSearchMode(_mode: SearchMode): void {
+  localStorage.setItem(SEARCH_MODE_KEY, 'wallet');
 }
 
 function firstNonEmptySearchParam(params: URLSearchParams, keys: string[]): string {
@@ -359,86 +375,220 @@ function firstNonEmptySearchParam(params: URLSearchParams, keys: string[]): stri
   return '';
 }
 
-/** URL can force mode via `mode=token|wallet`, or implicitly via token/wallet query params. */
+/** URL can pre-fill the wallet / ilike search input. */
 function initSearchModeFromUrlParams(): void {
   const params = new URLSearchParams(window.location.search);
-  const modeParam = (params.get('mode') || '').trim().toLowerCase();
-  const tokenQuery = firstNonEmptySearchParam(params, ['mintAddress', 'mint', 'token']);
-  const walletQuery = firstNonEmptySearchParam(params, [
+  const q = firstNonEmptySearchParam(params, [
     'walletAddress',
     'wallet',
     'ownerAddress',
     'address',
     'ilikeFilter',
     'query',
+    'mintAddress',
+    'mint',
+    'token',
   ]);
+  if (q) mintInput.value = q;
+}
 
-  let nextMode: SearchMode | null = null;
-  if (modeParam === 'token' || modeParam === 'wallet') {
-    nextMode = modeParam;
-  } else if (tokenQuery) {
-    nextMode = 'token';
-  } else if (walletQuery) {
-    nextMode = 'wallet';
+function getEndpointMode(): EndpointMode {
+  const stored = localStorage.getItem(MODE_STORAGE_KEY);
+  return stored === 'historical' ? 'historical' : 'realtime';
+}
+
+function setEndpointMode(mode: EndpointMode): void {
+  localStorage.setItem(MODE_STORAGE_KEY, mode);
+}
+
+function isEndpointModeLocked(): boolean {
+  return localStorage.getItem(MODE_LOCKED_STORAGE_KEY) !== 'false';
+}
+
+function setEndpointModeLocked(locked: boolean): void {
+  localStorage.setItem(MODE_LOCKED_STORAGE_KEY, locked ? 'true' : 'false');
+}
+
+function getHistResolution(): string {
+  const raw = localStorage.getItem(HIST_RES_STORAGE_KEY);
+  if (raw === '1d' || raw === '1w' || raw === '1mo') return raw;
+  return '1mo';
+}
+
+function setHistResolution(value: string): void {
+  localStorage.setItem(HIST_RES_STORAGE_KEY, value);
+}
+
+function histResolutionOptions(): Array<{ value: string; label: string }> {
+  return [
+    { value: '1d', label: '1d (daily)' },
+    { value: '1w', label: '1w (weekly)' },
+    { value: '1mo', label: '1mo (monthly)' },
+  ];
+}
+
+function applyEndpointModeUI(): void {
+  const mode = getEndpointMode();
+  const locked = isEndpointModeLocked();
+  const historical = mode === 'historical';
+
+  realtimeExclusiveSurface.hidden = historical;
+  historicalInputsBlock.hidden = !historical;
+  histPnlSection.hidden = !historical;
+  topTradersSection.hidden = historical;
+
+  if (historical) {
+    const w = mintInput.value.trim();
+    if (w && !histWalletAddress.value.trim()) histWalletAddress.value = w;
   }
-  if (!nextMode) return;
 
-  setSearchMode(nextMode);
-  const inputQuery = nextMode === 'token' ? tokenQuery : walletQuery;
-  if (inputQuery) {
-    mintInput.value = inputQuery;
+  histResolution.innerHTML = histResolutionOptions()
+    .map((o) => `<option value="${o.value}">${o.label}</option>`)
+    .join('');
+  const sel = getHistResolution();
+  if (histResolutionOptions().some((o) => o.value === sel)) histResolution.value = sel;
+  else histResolution.value = '1mo';
+
+  const histInputsLocked = historical && HISTORICAL_WALLET_PNL_UNDER_CONSTRUCTION;
+  fetchHistoricalPnlBtn.disabled = histInputsLocked;
+  histWalletAddress.disabled = histInputsLocked;
+  histResolution.disabled = histInputsLocked;
+  fetchHistoricalPnlBtn.title = histInputsLocked
+    ? 'Historical wallet PnL timeseries is under construction.'
+    : 'Load PnL timeseries for this wallet and resolution.';
+
+  if (historical && HISTORICAL_WALLET_PNL_UNDER_CONSTRUCTION) {
+    histPnlMeta.textContent =
+      'Historical wallet PnL timeseries is under construction. Switch to Realtime for wallet PnL and related wallets.';
+    histPnlTableHead.innerHTML = '<tr><th colspan="2">Status</th></tr>';
+    histPnlTableBody.innerHTML =
+      '<tr><td colspan="2">Under construction — check back later.</td></tr>';
+  }
+
+  endpointModeHistorical.checked = historical;
+  endpointModeLock.setAttribute('aria-pressed', String(locked));
+  endpointModeSwitchLabel.classList.toggle('trades-fetch-switch--locked', locked);
+  endpointModeSwitchLabel.title = locked
+    ? 'Locked: mode is fixed. Unlock to switch realtime/historical.'
+    : 'Switch between Realtime (wallet PnL + related wallets) and Historical (PnL timeseries — under construction).';
+
+  applySearchModeUI();
+}
+
+interface HistPnlPoint {
+  timestamp?: number;
+  pnlUsd?: number;
+  value?: number;
+}
+
+function normalizeHistTimeseries(data: unknown): HistPnlPoint[] {
+  if (!Array.isArray(data)) return [];
+  return data.map((row) => {
+    if (Array.isArray(row)) {
+      return { timestamp: Number(row[0]), pnlUsd: Number(row[1]) };
+    }
+    if (typeof row === 'object' && row != null) {
+      const obj = row as Record<string, unknown>;
+      return {
+        timestamp: Number(obj.timestamp ?? obj.time ?? obj.bucketStart ?? 0),
+        pnlUsd: Number(obj.pnlUsd ?? obj.realizedPnlUsd ?? obj.value ?? 0),
+        value: Number(obj.value ?? obj.pnlUsd ?? 0),
+      };
+    }
+    return {};
+  });
+}
+
+function formatHistDateTime(ts: number | null | undefined): string {
+  if (ts == null || Number.isNaN(Number(ts))) return '—';
+  const n = Number(ts);
+  const ms = n > 10_000_000_000 ? n : n * 1000;
+  return new Date(ms).toLocaleString();
+}
+
+function formatHistUsd(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(Number(value))) return '—';
+  const n = Number(value);
+  const rounded = Math.abs(n) < 10 ? n.toFixed(2) : Math.round(n).toLocaleString();
+  return `$${rounded} USD`;
+}
+
+function renderHistTable(points: HistPnlPoint[], wallet: string, resolution: string): void {
+  histPnlMeta.textContent = points.length
+    ? `Wallet ${wallet.slice(0, 4)}…${wallet.slice(-4)} · ${resolution} · ${points.length} point(s).`
+    : 'No historical points returned.';
+  histPnlTableHead.innerHTML = '<tr><th>Timestamp</th><th style="text-align:right">PnL (USD)</th></tr>';
+  histPnlTableBody.innerHTML = points.length
+    ? points
+        .map(
+          (p) =>
+            `<tr><td>${formatHistDateTime(p.timestamp)}</td><td style="text-align:right">${formatHistUsd((p.pnlUsd ?? p.value ?? 0) as number)}</td></tr>`
+        )
+        .join('')
+    : '<tr><td>—</td><td>—</td></tr>';
+}
+
+async function loadHistoricalPnlTimeseries(): Promise<void> {
+  if (HISTORICAL_WALLET_PNL_UNDER_CONSTRUCTION) {
+    histPnlMeta.textContent =
+      'Historical wallet PnL timeseries is under construction. Switch to Realtime for wallet PnL and related wallets.';
+    histPnlTableHead.innerHTML = '<tr><th colspan="2">Status</th></tr>';
+    histPnlTableBody.innerHTML =
+      '<tr><td colspan="2">Under construction — check back later.</td></tr>';
+    return;
+  }
+  const wallet = histWalletAddress.value.trim();
+  if (!wallet) return;
+  const resolution = histResolution.value || '1mo';
+  fetchHistoricalPnlBtn.disabled = true;
+  try {
+    const res = await fetchWithRetry(
+      `/api/wallets/${encodeURIComponent(wallet)}/pnl-ts?resolution=${encodeURIComponent(resolution)}`
+    );
+    if (!res.ok) {
+      histPnlMeta.textContent = `Request failed (${res.status}).`;
+      histPnlTableHead.innerHTML = '<tr><th>—</th></tr>';
+      histPnlTableBody.innerHTML = '<tr><td>—</td></tr>';
+      return;
+    }
+    const json = (await res.json().catch(() => ({}))) as { data?: unknown[] };
+    renderHistTable(normalizeHistTimeseries(json.data), wallet, resolution);
+  } finally {
+    if (!HISTORICAL_WALLET_PNL_UNDER_CONSTRUCTION) {
+      fetchHistoricalPnlBtn.disabled = false;
+    }
   }
 }
 
 function applySearchModeUI(): void {
-  const mode = getSearchMode();
-  const tokenMode = mode === 'token';
-  searchModeWallet.checked = !tokenMode;
-  searchModeSwitchLabel.classList.remove('trades-fetch-switch--locked');
-  searchModeSwitchLabel.title = 'Switch between token and wallet search.';
-  searchInputLabel.innerHTML = tokenMode
-    ? '<span class="label-icon field-icon icon-tag" aria-hidden="true"></span>Token mint address'
-    : '<span class="label-icon field-icon icon-user" aria-hidden="true"></span>Wallet address or name (ilikeFilter)';
-  mintInput.placeholder = tokenMode
-    ? 'e.g. DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'
-    : `e.g. ${DEMO_WALLET}`;
+  searchInputLabel.innerHTML =
+    '<span class="label-icon field-icon icon-user" aria-hidden="true"></span>Wallet address or name (ilikeFilter)';
+  mintInput.placeholder = `e.g. ${DEMO_WALLET}`;
   const currentValue = mintInput.value.trim();
-  if (
-    !currentValue
-    || (!tokenMode && currentValue === DEMO_MINT)
-    || (tokenMode && currentValue === DEMO_WALLET)
-  ) {
-    mintInput.value = tokenMode ? DEMO_MINT : DEMO_WALLET;
+  if (!currentValue || currentValue === DEMO_MINT) {
+    mintInput.value = DEMO_WALLET;
   }
-  fetchAllBtn.textContent = tokenMode ? 'Load token analytics' : 'Search top traders';
-  tokenSection.hidden = !tokenMode;
-  tokenSupplyPanelTotal.hidden = !tokenMode;
-  topTradersSection.hidden = tokenMode;
-  tokenTopPnlSection.hidden = !tokenMode;
-  tokenOnlyControls.hidden = !tokenMode;
-  if (tokenMode) {
-    tokenFetchSlot.appendChild(fetchActions);
-    tokenLoadingSlot.appendChild(loadingIndicator);
-  } else {
-    walletActionsTarget.appendChild(fetchActions);
-    walletLoadingSlot.appendChild(loadingIndicator);
-  }
+  fetchAllBtn.textContent = 'Load wallet PnL';
+  tokenSection.hidden = true;
+  tokenSupplyPanelTotal.hidden = true;
+  tokenTopPnlSection.hidden = true;
+  topTradersSection.hidden = getEndpointMode() === 'historical';
+  walletActionsTarget.appendChild(fetchActions);
+  walletLoadingSlot.appendChild(loadingIndicator);
   document
     .querySelectorAll<HTMLElement>('.wallet-only-control, .wallet-only-row')
     .forEach((el) => {
-      el.hidden = tokenMode;
+      el.hidden = false;
     });
   walletLabelField.hidden = true;
   walletPageField.hidden = true;
   document.querySelectorAll<HTMLElement>('.token-only-control').forEach((el) => {
-    el.hidden = !tokenMode;
+    el.hidden = true;
   });
   topTradersMeta.hidden = true;
   topTradersCards.hidden = true;
   applyWalletTopTradersTitle();
-  if (!tokenMode) {
-    requestAnimationFrame(() => syncWalletPieStackHeights());
-  }
+  requestAnimationFrame(() => syncWalletPieStackHeights());
 }
 
 function truncateAddress(addr: string | undefined): string {
@@ -1908,7 +2058,8 @@ function buildWalletTopTraderParams(mode: SearchMode, query: string): URLSearchP
     page: String(Math.max(0, Number(walletPage.value) || 0)),
   });
   const labelVal = walletLabel.value.trim().toLowerCase();
-  if (labelVal) params.set('label', labelVal);
+  // Vybe rejects `label=all`; "All" means omit the filter (same as top-traders UI intent).
+  if (labelVal && labelVal !== 'all') params.set('label', labelVal);
   const direction = walletSortDirection.value as SortDirection;
   const field = WALLET_TOP_TRADERS_SORT_FIELD;
   if (direction === 'asc') {
@@ -2271,8 +2422,8 @@ function renderTopTraders(
     }];
   const scope = mode === 'wallet' ? `ilikeFilter="${query}"` : `mintAddress="${query}"`;
   topTradersMeta.textContent = finalList.length
-    ? `GET /v4/wallets/top-traders with ${scope} and ${queryParams.toString()} returned ${list.length} row(s).`
-    : `GET /v4/wallets/top-traders with ${scope} returned 0 rows.`;
+    ? `GET /v4/wallets/top-traders (related wallets) with ${scope} and ${queryParams.toString()} returned ${list.length} row(s).`
+    : `GET /v4/wallets/top-traders (related wallets) with ${scope} returned 0 rows.`;
   topTradersCards.innerHTML = finalList.length
     ? finalList.map((row, i) => {
       const rank = i + 1;
@@ -2288,7 +2439,7 @@ function renderTopTraders(
       const bestTokenLabel = bestToken?.mintAddress ? renderTruncatedTokenMintLink(bestToken, bestToken.pnlUsd) : '—';
       const worstTokenLabel = worstToken?.mintAddress ? renderTruncatedTokenMintLink(worstToken, worstToken.pnlUsd) : '—';
       return `<section class="token-stats-group wallet-top-trader-card">
-        <h3 class="token-stats-group-title"><span>#${rank} Trader</span></h3>
+        <h3 class="token-stats-group-title"><span>#${rank} wallet</span></h3>
         <dl class="token-stats">
           <dt>Account</dt><dd>${accountLink}</dd>
           <dt>Name</dt><dd>${row.accountName || '—'}</dd>
@@ -2308,7 +2459,7 @@ function renderTopTraders(
       </section>`;
     }).join('')
     : `<section class="token-stats-group wallet-top-trader-card">
-        <h3 class="token-stats-group-title"><span>Top trader</span></h3>
+        <h3 class="token-stats-group-title"><span>Wallet</span></h3>
         <dl class="token-stats">
           <dt>Account</dt><dd>—</dd>
           <dt>Name</dt><dd>—</dd>
@@ -3891,10 +4042,11 @@ function renderTopTraderSelectedResolutionCharts(rows: TokenTopPnlTraderRow[], t
 }
 
 async function loadData(): Promise<void> {
+  if (getEndpointMode() === 'historical') return;
   const query = mintInput.value.trim();
   if (!query) return;
   const mode = getSearchMode();
-  const tokenMode = mode === 'token';
+  const tokenMode = false;
 
   hideSectionError(tokenSectionError);
   hideSectionError(topTradersError);
@@ -3980,12 +4132,12 @@ async function loadData(): Promise<void> {
           }
         } else {
           walletPnlMeta.textContent = 'Wallet PnL endpoint not called: no wallet address resolved from current filter.';
-          walletPnlDetails.innerHTML = '<div class="token-stats-group wallet-pnl-empty">No wallet address found in top-traders results for this filter.</div>';
+          walletPnlDetails.innerHTML = '<div class="token-stats-group wallet-pnl-empty">No wallet address found in related-wallets results for this filter.</div>';
         }
       } else {
         showSectionError(topTradersError, `Failed (${topRes.status})`);
         walletPnlMeta.textContent = '—';
-        walletPnlDetails.innerHTML = '<div class="token-stats-group wallet-pnl-empty">Wallet PnL unavailable while top-traders request fails.</div>';
+        walletPnlDetails.innerHTML = '<div class="token-stats-group wallet-pnl-empty">Wallet PnL unavailable while the related-wallets request fails.</div>';
       }
     }
   } catch {
@@ -3999,19 +4151,30 @@ async function loadData(): Promise<void> {
   }
 }
 
-searchModeWallet.addEventListener('change', () => {
-  const prevMode = getSearchMode();
-  const nextMode = searchModeWallet.checked ? 'wallet' : 'token';
-  if (nextMode === 'wallet') {
-    if (prevMode === 'token') {
-      lastTokenResolutionBeforeWalletSwitch = normalizeTokenResolution(tokenTopPnlResolution.value);
-    }
-  } else {
-    tokenTopPnlResolution.value = getTokenResolutionAfterWalletSwitch();
-    tokenTopPnlResolution.dispatchEvent(new Event('change'));
+endpointModeLock.addEventListener('click', () => {
+  setEndpointModeLocked(!isEndpointModeLocked());
+  applyEndpointModeUI();
+});
+
+endpointModeHistorical.addEventListener('change', () => {
+  if (isEndpointModeLocked()) {
+    endpointModeHistorical.checked = getEndpointMode() === 'historical';
+    return;
   }
-  setSearchMode(nextMode);
-  applySearchModeUI();
+  const next: EndpointMode = endpointModeHistorical.checked ? 'historical' : 'realtime';
+  setEndpointMode(next);
+  applyEndpointModeUI();
+  if (next === 'historical') {
+    setHistResolution(histResolution.value || getHistResolution());
+  }
+});
+
+histResolution.addEventListener('change', () => {
+  setHistResolution(histResolution.value);
+});
+
+fetchHistoricalPnlBtn.addEventListener('click', () => {
+  void loadHistoricalPnlTimeseries();
 });
 
 fetchAllBtn.addEventListener('click', () => {
@@ -4042,7 +4205,7 @@ lastTokenResolutionBeforeWalletSwitch = normalizeTokenResolution(tokenTopPnlReso
 walletTopTradersResolution.value = getWalletResolution();
 applyWalletTopTradersTitle();
 initSearchModeFromUrlParams();
-applySearchModeUI();
+applyEndpointModeUI();
 applySelectedTradesVerticalRowVisibility();
 topTradersMeta.hidden = true;
 topTradersCards.hidden = true;
