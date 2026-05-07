@@ -1131,8 +1131,6 @@ function walletPieCountUnitWord(pieTitle: string): string {
   return t.includes('position') ? 'positions' : 'trades';
 }
 
-type WalletPieHubKind = 'positions' | 'trades';
-
 /** Same normalization as {@link renderWalletPieCard} conic gradient slices. */
 function normalizedWalletPieSlices(slices: WalletPieSlice[]): {
   pctSlices: number[];
@@ -1151,17 +1149,12 @@ function normalizedWalletPieSlices(slices: WalletPieSlice[]): {
   };
 }
 
-function walletPieHubSubline(kind: WalletPieHubKind, total: number): string {
-  const n = formatIntFull(total);
-  return kind === 'positions' ? `${n} positions` : `${n} trades`;
-}
-
 /**
- * Wallet donut charts share token-mode SVG slice labels + center hub ({@link mountDonutPieOverlays}).
+ * Wallet donut charts share token-mode SVG slice labels ({@link mountDonutPieOverlays}); center hub is omitted.
  */
 function mountWalletPieDonutOverlays(
   root: HTMLElement,
-  configs: { slices: WalletPieSlice[]; hubKind: WalletPieHubKind }[]
+  configs: { slices: WalletPieSlice[] }[]
 ): void {
   const pies = root.querySelectorAll<HTMLElement>(
     '.wallet-pnl-card--pie .wallet-pnl-pie-chart.token-supply-pie'
@@ -1171,20 +1164,15 @@ function mountWalletPieDonutOverlays(
     clearDonutPieOverlays(pie);
     if (!cfg) {
       pie.style.background = buildPieGradientWithGaps([1], ['#27272a']);
-      mountDonutPieCenterHub(pie, { mock: true, hubSubline: '—' });
       return;
     }
     const norm = normalizedWalletPieSlices(cfg.slices);
     if (!norm) {
       pie.style.background = buildPieGradientWithGaps([1], ['#27272a']);
-      mountDonutPieCenterHub(pie, { mock: true, hubSubline: '—' });
       return;
     }
     pie.style.background = buildPieGradientWithGaps(norm.pctSlices, norm.fills);
-    mountDonutPieOverlays(pie, norm.pctSlices, norm.fills, {
-      mock: false,
-      hubSubline: walletPieHubSubline(cfg.hubKind, norm.total),
-    });
+    mountDonutPieOverlays(pie, norm.pctSlices, norm.fills, null);
   });
 }
 
@@ -2349,10 +2337,7 @@ function renderWalletPnl(
     <div class="wallet-pnl-sections">${walletProfileHtml}${tokenHighlightsHtml}${pieStackHtml}</div>
     <div class="wallet-pnl-trend-col">${pnlTradingHtml}${pnlTrendHtml}</div>
   </div>${assetsTableHtml}`;
-  mountWalletPieDonutOverlays(walletPnlDetails, [
-    { slices: statusSlices, hubKind: 'positions' },
-    { slices: winningLosingTradeSlices, hubKind: 'trades' },
-  ]);
+  mountWalletPieDonutOverlays(walletPnlDetails, [{ slices: statusSlices }, { slices: winningLosingTradeSlices }]);
   requestAnimationFrame(() => syncWalletPieStackHeights());
 }
 
@@ -3374,10 +3359,14 @@ function mountDonutPieOverlays(
   pieEl: HTMLElement,
   slicePcts: number[],
   sliceSpecs: PieSliceSpec[],
-  hub: { mock: boolean; hubSubline: string }
+  hub: { mock: boolean; hubSubline: string } | null
 ): void {
   mountDonutPieSliceLabelOverlay(pieEl, slicePcts, sliceSpecs);
-  mountDonutPieCenterHub(pieEl, hub);
+  if (hub) {
+    mountDonutPieCenterHub(pieEl, hub);
+  } else {
+    pieEl.querySelector('.token-supply-pie__hub')?.remove();
+  }
 }
 
 function syncPnlDistributionBarsGrid(hasNegativeColumn: boolean): void {
@@ -4211,10 +4200,7 @@ topTradersMeta.hidden = true;
 topTradersCards.hidden = true;
 walletPnlMeta.textContent = '—';
 walletPnlDetails.innerHTML = buildWalletPnlPlaceholder();
-mountWalletPieDonutOverlays(walletPnlDetails, [
-  { slices: [], hubKind: 'positions' },
-  { slices: [], hubKind: 'trades' },
-]);
+mountWalletPieDonutOverlays(walletPnlDetails, [{ slices: [] }, { slices: [] }]);
 requestAnimationFrame(() => syncWalletPieStackHeights());
 applyTokenModePlaceholder();
 tokenTopPnlBody.innerHTML = buildTokenTopPnlPlaceholderRowsHtml();
