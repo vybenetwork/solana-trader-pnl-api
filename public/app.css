@@ -3173,6 +3173,7 @@ button:active {
 
 .wallet-assets-table-wrap {
   max-height: 28rem;
+  overflow-x: clip;
   overflow-y: auto;
 }
 

@@ -6,11 +6,10 @@ Try the live demo: https://solana-wallet-pnl-profit-and-loss-api.vybenetwork.com
 
 Use this project as a reference implementation or starter kit for building Solana wallet analytics, leaderboards, and PnL dashboards powered by Vybe’s wallet and market data.
 
-![Solana wallet PnL and related wallets demo](screenshots/solana-ohlc-candlestick-data-api-repo.png)
+![Solana wallet PnL and related wallets demo](screenshots/solana-wallet-pnl-profit-and-loss-api.png)
 
 <p align="center">
-  <img src="screenshots/solana-ohlc-data-provider-fetch-candlesticks.png" alt="Wallet PnL remote filters and fetch" width="340" style="min-width:340px;max-width:340px;margin-right:10px;" />
-  <img src="screenshots/solana-ohlc-api-endpoint-candlestick-charts.png" alt="Related wallets leaderboard and wallet PnL layout" width="320" style="min-width:320px;max-width:320px;" />
+  <img src="screenshots/wallet-pnl-api-profit-and-loss-solana.png" alt="Wallet PnL API Profit and Loss" width="460" style="min-width:460px;max-width:460px;" />
 </p>
 
 ---
