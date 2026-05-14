@@ -289,7 +289,7 @@ const histPnlTableHead = document.getElementById('histPnlTableHead') as HTMLElem
 const histPnlTableBody = document.getElementById('histPnlTableBody') as HTMLElement;
 
 const MODE_STORAGE_KEY = 'walletPnlEndpointMode';
-const HIST_RES_STORAGE_KEY = 'walletPnlHistResolution';
+const HIST_RES_STORAGE_KEY = 'walletPnlHistResolutionV2';
 
 /** When true, historical PnL timeseries UI is disabled and requests are not sent. */
 const HISTORICAL_WALLET_PNL_UNDER_CONSTRUCTION = false;
