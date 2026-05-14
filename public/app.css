@@ -201,8 +201,8 @@ body {
 #mint,
 #histWalletAddress {
   min-width: 0;
-  width: 100%;
-  max-width: 442px;
+  width: 422px;
+  max-width: 422px;
 }
 
 #walletLabel,
@@ -469,8 +469,9 @@ body {
   min-width: 0;
 }
 
+/* Mint column sizes to the input (no flex-grow gap before Resolution). */
 .remote-top-row .mint-query-field {
-  flex: 1 1 200px;
+  flex: 0 1 auto;
   min-width: 0;
   max-width: none;
 }
@@ -502,6 +503,11 @@ body {
 
 /* Historical: gap between filter row and Action / loading row */
 #historicalInputsBlock #histControlsRow {
+  margin-top: 0.85rem;
+}
+
+/* Realtime: gap between top filter row and second row (Action, mint, etc.) */
+#walletControlsRow {
   margin-top: 0.85rem;
 }
 
