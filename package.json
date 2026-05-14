@@ -1,7 +1,7 @@
 {
   "name": "solana-wallet-pnl-profit-and-loss-api",
   "version": "1.0.0",
-  "description": "Solana wallet PnL demo — wallet search, related wallets, and per-wallet PnL via Vybe API",
+  "description": "Solana Wallet PnL API: reference app for Vybe wallet PnL, related wallets, and dashboards — starter kit for wallet analytics and leaderboards",
   "type": "module",
   "main": "dist/server.js",
   "scripts": {

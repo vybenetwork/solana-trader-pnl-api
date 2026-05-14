@@ -13,11 +13,14 @@ import {
   getTopTraders,
   getTokenTopPnlTraders,
   getWalletPnl,
+  getWalletPnlTimeseries,
   type GetTradesOptions,
   type GetTopTradersOptions,
   type GetTopPnlTradersOptions,
   type GetWalletPnlOptions,
+  type GetWalletPnlTimeseriesOptions,
   type VybeTradesResponse,
+  type VybeWalletPnlTimeseriesResponse,
 } from './trades.js';
 import type {
   VybeTopHoldersResponse,
@@ -38,6 +41,10 @@ export interface VybeClient {
     options?: GetTopPnlTradersOptions
   ): Promise<VybeTokenTopPnlTradersResponse>;
   getWalletPnl(ownerAddress: string, options?: GetWalletPnlOptions): Promise<VybeWalletPnlResponse>;
+  getWalletPnlTimeseries(
+    ownerAddress: string,
+    options?: GetWalletPnlTimeseriesOptions
+  ): Promise<VybeWalletPnlTimeseriesResponse>;
 }
 
 /**
@@ -58,5 +65,7 @@ export function createClient(apiKey: string): VybeClient {
       getTokenTopPnlTraders(http, mintAddress, options),
     getWalletPnl: (ownerAddress: string, options?: GetWalletPnlOptions) =>
       getWalletPnl(http, ownerAddress, options),
+    getWalletPnlTimeseries: (ownerAddress: string, options?: GetWalletPnlTimeseriesOptions) =>
+      getWalletPnlTimeseries(http, ownerAddress, options),
   };
 }

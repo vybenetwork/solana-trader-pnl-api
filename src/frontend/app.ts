@@ -279,7 +279,10 @@ const realtimeExclusiveSurface = document.getElementById('realtimeExclusiveSurfa
 const historicalInputsBlock = document.getElementById('historicalInputsBlock') as HTMLElement;
 const histWalletAddress = document.getElementById('histWalletAddress') as HTMLInputElement;
 const histResolution = document.getElementById('histResolution') as HTMLSelectElement;
+const histTimeStart = document.getElementById('histTimeStart') as HTMLInputElement;
+const histTimeEnd = document.getElementById('histTimeEnd') as HTMLInputElement;
 const fetchHistoricalPnlBtn = document.getElementById('fetchHistoricalPnl') as HTMLButtonElement;
+const histLoadingIndicator = document.getElementById('histLoadingIndicator') as HTMLElement;
 const histPnlSection = document.getElementById('histPnlSection') as HTMLElement;
 const histPnlMeta = document.getElementById('histPnlMeta') as HTMLElement;
 const histPnlTableHead = document.getElementById('histPnlTableHead') as HTMLElement;
@@ -289,10 +292,10 @@ const MODE_STORAGE_KEY = 'walletPnlEndpointMode';
 const HIST_RES_STORAGE_KEY = 'walletPnlHistResolution';
 
 /** When true, historical PnL timeseries UI is disabled and requests are not sent. */
-const HISTORICAL_WALLET_PNL_UNDER_CONSTRUCTION = true;
+const HISTORICAL_WALLET_PNL_UNDER_CONSTRUCTION = false;
 
 /** When true, Realtime/Historical toggle and lock are inactive (historical UI deferred). */
-const ENDPOINT_HISTORICAL_SWITCHER_DISABLED = true;
+const ENDPOINT_HISTORICAL_SWITCHER_DISABLED = false;
 
 const SEARCH_MODE_KEY = 'topTradersSearchMode';
 const MAX_FETCH_RETRIES = 5;
@@ -408,7 +411,7 @@ function setEndpointMode(mode: EndpointMode): void {
 function getHistResolution(): string {
   const raw = localStorage.getItem(HIST_RES_STORAGE_KEY);
   if (raw === '1d' || raw === '1w' || raw === '1mo') return raw;
-  return '1mo';
+  return '1d';
 }
 
 function setHistResolution(value: string): void {
@@ -442,12 +445,14 @@ function applyEndpointModeUI(): void {
     .join('');
   const sel = getHistResolution();
   if (histResolutionOptions().some((o) => o.value === sel)) histResolution.value = sel;
-  else histResolution.value = '1mo';
+  else histResolution.value = '1d';
 
   const histInputsLocked = historical && HISTORICAL_WALLET_PNL_UNDER_CONSTRUCTION;
   fetchHistoricalPnlBtn.disabled = histInputsLocked;
   histWalletAddress.disabled = histInputsLocked;
   histResolution.disabled = histInputsLocked;
+  histTimeStart.disabled = histInputsLocked;
+  histTimeEnd.disabled = histInputsLocked;
   fetchHistoricalPnlBtn.title = histInputsLocked
     ? 'Historical wallet PnL timeseries is under construction.'
     : 'Load PnL timeseries for this wallet and resolution.';
@@ -467,7 +472,7 @@ function applyEndpointModeUI(): void {
     endpointModeSwitchLabel.title = 'Historical mode is unavailable until that section is ready.';
   } else {
     endpointModeSwitchLabel.title =
-      'Switch between Realtime (wallet PnL + related wallets) and Historical (PnL timeseries — under construction).';
+      'Switch between Realtime (wallet PnL + related wallets) and Historical (PnL timeseries).';
   }
 
   applySearchModeUI();
@@ -489,19 +494,39 @@ function normalizeHistTimeseries(data: unknown): HistPnlPoint[] {
       const obj = row as Record<string, unknown>;
       return {
         timestamp: Number(obj.timestamp ?? obj.time ?? obj.bucketStart ?? 0),
-        pnlUsd: Number(obj.pnlUsd ?? obj.realizedPnlUsd ?? obj.value ?? 0),
-        value: Number(obj.value ?? obj.pnlUsd ?? 0),
+        pnlUsd: Number(
+          obj.pnlUsd ?? obj.realizedPnlUsd ?? obj.pnl ?? obj.value ?? 0
+        ),
+        value: Number(obj.value ?? obj.pnlUsd ?? obj.pnl ?? 0),
       };
     }
     return {};
   });
 }
 
+/** Unix seconds: 24 hours before current moment (default timeEnd on load). */
+function getUnixNowMinus24Hours(): number {
+  return Math.floor(Date.now() / 1000) - 24 * 60 * 60;
+}
+
+/** Set historical timeEnd default on every full page load. */
+function applyDefaultHistTimeEndOnLoad(): void {
+  histTimeEnd.value = String(getUnixNowMinus24Hours());
+}
+
 function formatHistDateTime(ts: number | null | undefined): string {
   if (ts == null || Number.isNaN(Number(ts))) return '—';
   const n = Number(ts);
   const ms = n > 10_000_000_000 ? n : n * 1000;
-  return new Date(ms).toLocaleString();
+  const d = new Date(ms);
+  if (Number.isNaN(d.getTime())) return '—';
+  const weekday = d.toLocaleString('en-US', { weekday: 'long' });
+  const month = d.toLocaleString('en-US', { month: 'long' });
+  const day = d.getDate();
+  const year = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${weekday} ${month} ${day} ${year} ${hh}:${mm}`;
 }
 
 function formatHistUsd(value: number | null | undefined): string {
@@ -512,16 +537,26 @@ function formatHistUsd(value: number | null | undefined): string {
 }
 
 function renderHistTable(points: HistPnlPoint[], wallet: string, resolution: string): void {
-  histPnlMeta.textContent = points.length
-    ? `Wallet ${wallet.slice(0, 4)}…${wallet.slice(-4)} · ${resolution} · ${points.length} point(s).`
+  const tsMs = (t: number | undefined): number => {
+    if (t == null || Number.isNaN(Number(t))) return 0;
+    const n = Number(t);
+    return n > 10_000_000_000 ? n : n * 1000;
+  };
+  const sorted = [...points].sort((a, b) => tsMs(b.timestamp) - tsMs(a.timestamp));
+
+  histPnlMeta.textContent = sorted.length
+    ? `Wallet ${wallet.slice(0, 4)}…${wallet.slice(-4)} · ${resolution} · ${sorted.length} point(s).`
     : 'No historical points returned.';
   histPnlTableHead.innerHTML = '<tr><th>Timestamp</th><th style="text-align:right">PnL (USD)</th></tr>';
-  histPnlTableBody.innerHTML = points.length
-    ? points
-        .map(
-          (p) =>
-            `<tr><td>${formatHistDateTime(p.timestamp)}</td><td style="text-align:right">${formatHistUsd((p.pnlUsd ?? p.value ?? 0) as number)}</td></tr>`
-        )
+  histPnlTableBody.innerHTML = sorted.length
+    ? sorted
+        .map((p) => {
+          const val = (p.pnlUsd ?? p.value ?? 0) as number;
+          const usdHtml = formatHistUsd(val);
+          const pnlClass =
+            usdHtml === '—' ? '' : 'usd-tone usd-tone--positive';
+          return `<tr><td>${formatHistDateTime(p.timestamp)}</td><td style="text-align:right"${pnlClass ? ` class="${pnlClass}"` : ''}>${usdHtml}</td></tr>`;
+        })
         .join('')
     : '<tr><td>—</td><td>—</td></tr>';
 }
@@ -537,14 +572,29 @@ async function loadHistoricalPnlTimeseries(): Promise<void> {
   }
   const wallet = histWalletAddress.value.trim();
   if (!wallet) return;
-  const resolution = histResolution.value || '1mo';
+  const resolution = histResolution.value || '1d';
+  const qs = new URLSearchParams();
+  qs.set('resolution', resolution);
+  const tsRaw = histTimeStart.value.trim();
+  const teRaw = histTimeEnd.value.trim();
+  if (tsRaw !== '' && !Number.isNaN(Number(tsRaw)) && Number(tsRaw) >= 0) {
+    qs.set('timeStart', String(Math.floor(Number(tsRaw))));
+  }
+  if (teRaw !== '' && !Number.isNaN(Number(teRaw)) && Number(teRaw) >= 0) {
+    qs.set('timeEnd', String(Math.floor(Number(teRaw))));
+  }
+
   fetchHistoricalPnlBtn.disabled = true;
+  histLoadingIndicator.hidden = false;
   try {
     const res = await fetchWithRetry(
-      `/api/wallets/${encodeURIComponent(wallet)}/pnl-ts?resolution=${encodeURIComponent(resolution)}`
+      `/api/wallets/${encodeURIComponent(wallet)}/pnl-ts?${qs.toString()}`
     );
     if (!res.ok) {
-      histPnlMeta.textContent = `Request failed (${res.status}).`;
+      const errBody = (await res.json().catch(() => ({}))) as { error?: string };
+      histPnlMeta.textContent = errBody.error
+        ? `Request failed (${res.status}): ${errBody.error}`
+        : `Request failed (${res.status}).`;
       histPnlTableHead.innerHTML = '<tr><th>—</th></tr>';
       histPnlTableBody.innerHTML = '<tr><td>—</td></tr>';
       return;
@@ -552,6 +602,7 @@ async function loadHistoricalPnlTimeseries(): Promise<void> {
     const json = (await res.json().catch(() => ({}))) as { data?: unknown[] };
     renderHistTable(normalizeHistTimeseries(json.data), wallet, resolution);
   } finally {
+    histLoadingIndicator.hidden = true;
     if (!HISTORICAL_WALLET_PNL_UNDER_CONSTRUCTION) {
       fetchHistoricalPnlBtn.disabled = false;
     }
@@ -4193,6 +4244,7 @@ walletTopTradersResolution.value = getWalletResolution();
 applyWalletTopTradersTitle();
 initSearchModeFromUrlParams();
 applyEndpointModeUI();
+applyDefaultHistTimeEndOnLoad();
 applySelectedTradesVerticalRowVisibility();
 topTradersMeta.hidden = true;
 topTradersCards.hidden = true;

@@ -276,6 +276,41 @@ app.get('/api/wallets/:ownerAddress/pnl', async (req: Request, res: Response) =>
   }
 });
 
+app.get('/api/wallets/:ownerAddress/pnl-ts', async (req: Request, res: Response) => {
+  try {
+    const ownerAddress = param(req, 'ownerAddress').trim();
+    if (!ownerAddress) return res.status(400).json({ error: 'Owner address required' });
+    const resolution = queryOne(req, 'resolution') ?? '1d';
+    const timeStartRaw = queryOne(req, 'timeStart');
+    const timeEndRaw = queryOne(req, 'timeEnd');
+    const timeStartNum =
+      timeStartRaw != null && timeStartRaw !== '' && !Number.isNaN(Number(timeStartRaw))
+        ? Number(timeStartRaw)
+        : undefined;
+    const timeEndNum =
+      timeEndRaw != null && timeEndRaw !== '' && !Number.isNaN(Number(timeEndRaw))
+        ? Number(timeEndRaw)
+        : undefined;
+    const timeStart =
+      timeStartNum !== undefined && Number.isFinite(timeStartNum) && timeStartNum >= 0
+        ? Math.floor(timeStartNum)
+        : undefined;
+    const timeEnd =
+      timeEndNum !== undefined && Number.isFinite(timeEndNum) && timeEndNum >= 0
+        ? Math.floor(timeEndNum)
+        : undefined;
+    const data = await client.getWalletPnlTimeseries(ownerAddress, {
+      resolution,
+      ...(timeStart !== undefined ? { timeStart } : {}),
+      ...(timeEnd !== undefined ? { timeEnd } : {}),
+    });
+    res.json(data);
+  } catch (err) {
+    const status = (err as { response?: { status?: number } })?.response?.status ?? 500;
+    res.status(status).json({ error: toHumanReadableError(err) });
+  }
+});
+
 app.get('/api/tokens/:mint/top-pnl-traders', async (req: Request, res: Response) => {
   try {
     const mint = param(req, 'mint').trim();

@@ -198,7 +198,8 @@ body {
   display: none !important;
 }
 
-#mint {
+#mint,
+#histWalletAddress {
   min-width: 0;
   width: 100%;
   max-width: 442px;
@@ -487,8 +488,21 @@ body {
 }
 
 .remote-top-row .wallet-resolution-field select {
-  width: 88px;
-  min-width: 88px;
+  width: 150px;
+  min-width: 150px;
+}
+
+.remote-top-row #histTimeStart,
+.remote-top-row #histTimeEnd {
+  width: 110px;
+  min-width: 110px;
+  max-width: 110px;
+  box-sizing: border-box;
+}
+
+/* Historical: gap between filter row and Action / loading row */
+#historicalInputsBlock #histControlsRow {
+  margin-top: 0.85rem;
 }
 
 .trades-fetch-switch {

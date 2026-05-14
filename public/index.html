@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Wallet PnL · Vybe</title>
-  <link rel="stylesheet" href="app.css?v=230" />
+  <link rel="stylesheet" href="app.css?v=233" />
 </head>
 <body>
   <div class="container">
@@ -21,14 +21,6 @@
     </header>
 
     <section class="inputs panel">
-      <div id="realtimeExclusiveSurface">
-      <div class="section-header">
-        <h2 class="token-stats-group-title">Remote filters</h2>
-      </div>
-      <p class="remote-filters-help wallet-pnl-pnl-trading-lede">
-        <strong>Remote filters</strong> map directly to Vybe query params for wallet PnL and the related-wallets leaderboard.
-      </p>
-
       <div class="candles-mint-resolution-row remote-top-row inputs-endpoint-mode-bar" id="endpointModeBar">
         <div class="field endpoint-mode-field site-header__endpoint" id="endpointModeField">
           <label class="site-header__endpoint-label" for="endpointModeHistorical">
@@ -36,7 +28,7 @@
             Endpoint mode
           </label>
           <div class="trades-fetch-control">
-            <label class="trades-fetch-switch" id="endpointModeSwitchLabel" title="Switch between Realtime (wallet PnL + related wallets) and Historical (PnL timeseries — under construction).">
+            <label class="trades-fetch-switch" id="endpointModeSwitchLabel" title="Switch between Realtime (wallet PnL + related wallets) and Historical (PnL timeseries).">
               <input type="checkbox" id="endpointModeHistorical" class="trades-fetch-switch-input" />
               <span class="trades-fetch-switch-track">
                 <span class="trades-fetch-switch-option" data-value="single">
@@ -51,6 +43,17 @@
             </label>
           </div>
         </div>
+      </div>
+
+      <div id="realtimeExclusiveSurface">
+      <div class="section-header">
+        <h2 class="token-stats-group-title">Remote filters</h2>
+      </div>
+      <p class="remote-filters-help wallet-pnl-pnl-trading-lede">
+        <strong>Remote filters</strong> map directly to Vybe query params for wallet PnL and the related-wallets leaderboard.
+      </p>
+
+      <div class="candles-mint-resolution-row remote-top-row">
         <div class="field mint-query-field">
           <label for="mint" id="searchInputLabel">
             <span class="label-icon field-icon icon-user" aria-hidden="true"></span>
@@ -189,19 +192,78 @@
       </div>
 
       <div id="historicalInputsBlock" hidden>
-        <p class="construction-callout" role="status">
-          <strong>Under construction.</strong> Historical wallet PnL timeseries is not available in the UI yet. Switch to <strong>Realtime</strong> to use wallet PnL and related wallets.
+        <div class="section-header">
+          <h2 class="token-stats-group-title">Remote filters</h2>
+        </div>
+        <p class="remote-filters-help wallet-pnl-pnl-trading-lede">
+          <strong>Remote filters</strong> map to Vybe path param <code>ownerAddress</code> and query params <code>resolution</code> (1d / 1w / 1mo), optional <code>timeStart</code> and <code>timeEnd</code> (unix seconds). Leave time range empty to use API defaults.
         </p>
-        <div class="field">
-          <label for="histWalletAddress">Wallet address</label>
-          <input type="text" id="histWalletAddress" placeholder="e.g. full wallet address for timeseries" />
+
+        <div class="candles-mint-resolution-row remote-top-row">
+          <div class="field mint-query-field">
+            <label for="histWalletAddress" id="histWalletAddressLabel">
+              <span class="label-icon field-icon icon-user" aria-hidden="true"></span>
+              ownerAddress
+            </label>
+            <div class="field-control">
+              <span class="field-icon icon-user" aria-hidden="true"></span>
+              <input type="text" id="histWalletAddress" placeholder="Solana wallet address (required)" />
+            </div>
+          </div>
+
+          <div class="field wallet-resolution-field resolution-inline-field">
+            <label for="histResolution">
+              <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
+              resolution
+            </label>
+            <div class="field-control">
+              <span class="field-icon icon-grid" aria-hidden="true"></span>
+              <select id="histResolution"></select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="histTimeStart">
+              <span class="label-icon field-icon icon-pages" aria-hidden="true"></span>
+              timeStart
+            </label>
+            <div class="field-control">
+              <span class="field-icon icon-pages" aria-hidden="true"></span>
+              <input type="text" id="histTimeStart" inputmode="numeric" placeholder="unix seconds (optional)" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="histTimeEnd">
+              <span class="label-icon field-icon icon-pages" aria-hidden="true"></span>
+              timeEnd
+            </label>
+            <div class="field-control">
+              <span class="field-icon icon-pages" aria-hidden="true"></span>
+              <input type="text" id="histTimeEnd" inputmode="numeric" placeholder="unix seconds (optional)" />
+            </div>
+          </div>
         </div>
-        <div class="field">
-          <label for="histResolution">Resolution</label>
-          <select id="histResolution"></select>
-        </div>
-        <div class="actions">
-          <button type="button" id="fetchHistoricalPnl">Load wallet PnL (historical)</button>
+
+        <div class="candles-mint-resolution-row wallet-only-row" id="histControlsRow">
+          <div id="histWalletActionsTarget" class="inline-actions-target wallet-fetch-slot">
+            <div class="field inline-row-actions" id="histFetchActions">
+              <label for="fetchHistoricalPnl">
+                <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
+                Action
+              </label>
+              <div class="actions-buttons">
+                <button type="button" id="fetchHistoricalPnl" class="fetch-btn-attention">Load wallet PnL</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="histLoadingSlot" class="inline-actions-target wallet-fetch-slot">
+            <div class="loading" id="histLoadingIndicator" hidden aria-hidden="true">
+              <span class="loading-spinner"></span>
+              <span class="loading-text">Loading…</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -443,7 +505,7 @@
 
     <section class="panel" id="histPnlSection" hidden>
       <div class="section-header">
-        <h2 class="token-stats-group-title" id="histPnlHeading">Wallet PnL (historical · under construction)</h2>
+        <h2 class="token-stats-group-title" id="histPnlHeading">Wallet PnL (historical)</h2>
       </div>
       <p class="meta" id="histPnlMeta">—</p>
       <div class="table-wrap">
@@ -477,6 +539,6 @@
     </select>
   </div>
 
-  <script src="app.js?v=225"></script>
+  <script src="app.js?v=230"></script>
 </body>
 </html>

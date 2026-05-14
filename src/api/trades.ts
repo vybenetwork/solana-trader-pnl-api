@@ -178,6 +178,38 @@ export async function getTokenTopPnlTraders(
   });
 }
 
+/** GET /v4/wallets/{ownerAddress}/pnl-ts — bucketed PnL timeseries (resolution 1d / 1w / 1mo). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type VybeWalletPnlTimeseriesResponse = { data?: any[]; [key: string]: unknown };
+
+export interface GetWalletPnlTimeseriesOptions {
+  resolution?: string;
+  timeStart?: number;
+  timeEnd?: number;
+}
+
+export async function getWalletPnlTimeseries(
+  http: AxiosInstance,
+  ownerAddress: string,
+  options: GetWalletPnlTimeseriesOptions = {}
+): Promise<VybeWalletPnlTimeseriesResponse> {
+  const { resolution = '1d', timeStart, timeEnd } = options;
+  return withRetry(async () => {
+    const params: Record<string, string> = { resolution };
+    if (timeStart != null && Number.isFinite(timeStart) && timeStart >= 0) {
+      params.timeStart = String(Math.floor(timeStart));
+    }
+    if (timeEnd != null && Number.isFinite(timeEnd) && timeEnd >= 0) {
+      params.timeEnd = String(Math.floor(timeEnd));
+    }
+    const { data } = await http.get<VybeWalletPnlTimeseriesResponse>(
+      `/v4/wallets/${encodeURIComponent(ownerAddress)}/pnl-ts`,
+      { params }
+    );
+    return data;
+  });
+}
+
 export async function getWalletPnl(
   http: AxiosInstance,
   ownerAddress: string,

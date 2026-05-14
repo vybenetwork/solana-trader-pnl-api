@@ -1,10 +1,8 @@
 # Solana Wallet PnL Profit & Loss API
 
-This repository demonstrates how to use the Vybe Solana wallet APIs to fetch, explore, and present **per-wallet profit and loss (PnL)** together with **related wallets** ranked by realized PnL for the same resolution window. It includes a production-ready Node.js backend and a browser UI that integrate Vybe’s wallet PnL, top-traders (related wallets), trades, program labels, and token metadata—so you can search by wallet address or partial name (`ilikeFilter`), load wallet-scoped PnL rows, and browse the related-wallets leaderboard with the same query parameters you would send to Vybe.
+**Solana Wallet PnL API:** This repository demonstrates how to use the Vybe Solana wallet PnL APIs to fetch, explore, and analyze **per-wallet profit and loss (PnL)** together with **related wallets** ranked by realized PnL, including trades, program labels, and token metadata for SPL and Token-2022 activity. It ships as a production-ready Node.js backend and browser UI so you can search wallets (address or partial name via `ilikeFilter`), load wallet-scoped PnL, and browse the related-wallets leaderboard with the same parameters you would send to Vybe. Use this project as a reference implementation or starter kit for building data products such as wallet analytics dashboards, PnL leaderboards, related-wallet discovery, and more.
 
 Try the live demo: https://solana-wallet-pnl-profit-and-loss-api.vybenetwork.com
-
-Use this project as a reference implementation or starter kit for building Solana wallet analytics, leaderboards, and PnL dashboards powered by Vybe’s wallet and market data.
 
 ![Solana wallet PnL and related wallets demo](screenshots/solana-wallet-pnl-profit-and-loss-api.png)
 
