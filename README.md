@@ -115,15 +115,11 @@ The wallet UI is implemented in `src/frontend/app.ts` and compiled to `public/ap
   - **Endpoint mode**: Realtime vs Historical switch (Historical is disabled in the current UI until the timeseries section ships).
   - **Wallet address or name** (`ilikeFilter` / owner resolution), **Resolution** (1d, 7d, 30d), **Wallet PnL sort** and related controls that map to Vybe query params.
 
-![Wallet search and PnL controls](screenshots/solana-token-details-api-fetch-metadata.png)
-
 - **Wallet PnL summary and token rows**
   - After **Load wallet PnL**, the UI renders wallet PnL metadata, per-token metrics (where returned), charts/cards depending on payload, and links or copy-friendly addresses.
 
 - **Related wallets (top traders)**
   - Grid of wallets returned by `GET /v4/wallets/top-traders` for the same scope, sorted by realized PnL for the selected resolution.
-
-![Related wallets grid and wallet PnL cards](screenshots/solana-trades-data-table-api-fetch.png)
 
 - **Second-row controls (pagination and filters)**
   - **Wallet traders label** (`label`), optional **Wallet PnL mint** (`mintAddress`), **Sort direction**, **limit**, **page**, and loading indicator beside **Load wallet PnL**.
@@ -137,7 +133,7 @@ The wallet UI is implemented in `src/frontend/app.ts` and compiled to `public/ap
 
 ### Remote filters (Vybe query params)
 
-![Remote filters row mapping to Vybe wallet params](screenshots/solana-trade-api-fetch-filter-quotes.png)
+![Remote filters row mapping to Vybe wallet params](screenshots/solana-wallet-pnl-api-search-filters.png)
 
 The top of the UI controls the requests sent to the API:
 
@@ -150,8 +146,6 @@ The top of the UI controls the requests sent to the API:
 These map to the proxy routes in `src/server.ts` and are forwarded to Vybe with your `VYBE_API_KEY`.
 
 ### Second-row wallet controls
-
-![Pagination, label, and optional mint filter for wallet PnL](screenshots/solana-market-pool-fetching-api-filter-candlesticks.png)
 
 After the primary row, optional controls refine the same Vybe calls:
 
