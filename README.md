@@ -16,7 +16,7 @@ Try the live demo: https://solana-wallet-pnl-profit-and-loss-api.vybenetwork.com
 
 **[Try the LIVE demo →](https://solana-wallet-pnl-profit-and-loss-api.vybenetwork.com)**
 
-**[Get your free Vybe API key →](https://vybenetwork.com/pricing)**
+**[Get your free Vybe API key →](https://vybe.fyi/api-pricing)**
 
 **[Vybe quick start →](https://docs.vybenetwork.com/docs/quick-start)**
 
@@ -52,7 +52,7 @@ Then open **http://localhost:3000**, enter a **wallet address or name** (mapped 
 | `TUNNEL`          | No       | Set to `1` to run behind a Cloudflare Tunnel                                | `1`                                       |
 | `TRADES_LOG`      | No       | Set to `1` to append `/api/trades` request lines to `trades-requests.log`   | `0`                                       |
 
-Get your API key at `https://vybenetwork.com/pricing`.
+Get your API key at `https://vybe.fyi/api-pricing`.
 
 ---
 
