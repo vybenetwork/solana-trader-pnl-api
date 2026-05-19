@@ -8,7 +8,7 @@ Try the live demo: https://solana-wallet-pnl-profit-and-loss-api.vybenetwork.com
 
 <p align="center">
   <img src="screenshots/wallet-pnl-api-profit-and-loss-solana.png" alt="Wallet PnL API Profit and Loss" width="360" style="min-width:360px;max-width:360px;margin-right:10px;" />
-  <img src="screenshots/solana-wallet-pnl-historical-data-api.png" alt="Solana Wallet PnL Historical Data API" width="270" style="min-width:270px;max-width:270px" />
+  <img src="screenshots/solana-wallet-pnl-historical-data-api.png" alt="Solana Wallet PnL Historical Data API" width="280" style="min-width:280px;max-width:280px" />
 </p>
 
 
