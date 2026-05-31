@@ -618,8 +618,8 @@ function applySearchModeUI(): void {
   if (!currentValue || currentValue === DEMO_MINT) {
     mintInput.value = DEMO_WALLET;
   }
-  if (fetchAllBtnText) fetchAllBtnText.textContent = 'Load wallet PnL';
-  else fetchAllBtn.textContent = 'Load wallet PnL';
+  if (fetchAllBtnText) fetchAllBtnText.textContent = 'Load Wallet PnL';
+  else fetchAllBtn.textContent = 'Load Wallet PnL';
   tokenSection.hidden = true;
   tokenSupplyPanelTotal.hidden = true;
   tokenTopPnlSection.hidden = true;
