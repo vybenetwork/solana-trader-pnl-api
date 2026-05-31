@@ -197,6 +197,7 @@ const fetchActions = document.getElementById('fetchActions') as HTMLElement;
 const walletActionsTarget = document.getElementById('walletActionsTarget') as HTMLElement;
 const walletLoadingSlot = document.getElementById('walletLoadingSlot') as HTMLElement;
 const fetchAllBtn = document.getElementById('fetchAll') as HTMLButtonElement;
+const fetchAllBtnText = document.getElementById('fetchAllBtnText') as HTMLElement | null;
 const loadingIndicator = document.getElementById('loadingIndicator') as HTMLElement;
 const walletLabelField = document.getElementById('walletLabelField') as HTMLElement;
 const walletPageField = document.getElementById('walletPageField') as HTMLElement;
@@ -617,7 +618,8 @@ function applySearchModeUI(): void {
   if (!currentValue || currentValue === DEMO_MINT) {
     mintInput.value = DEMO_WALLET;
   }
-  fetchAllBtn.textContent = 'Load wallet PnL';
+  if (fetchAllBtnText) fetchAllBtnText.textContent = 'Load wallet PnL';
+  else fetchAllBtn.textContent = 'Load wallet PnL';
   tokenSection.hidden = true;
   tokenSupplyPanelTotal.hidden = true;
   tokenTopPnlSection.hidden = true;
@@ -4212,10 +4214,12 @@ histResolution.addEventListener('change', () => {
 });
 
 fetchHistoricalPnlBtn.addEventListener('click', () => {
+  fetchHistoricalPnlBtn.classList.remove('fetch-btn-attention');
   void loadHistoricalPnlTimeseries();
 });
 
 fetchAllBtn.addEventListener('click', () => {
+  fetchAllBtn.classList.remove('fetch-btn-attention');
   void loadData();
 });
 
