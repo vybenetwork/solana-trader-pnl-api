@@ -675,7 +675,7 @@ function renderTruncatedTokenMintLink(token: WalletPnlSummaryTokenRef, pnlUsd?: 
   const raw = token.tokenSymbol || token.tokenName || truncateAddress(mint);
   const titleAttr = escapeHtmlAttr(`${raw} · ${mint}`);
   const pnlPart = pnlUsd != null ? ` (${formatUsdFull(pnlUsd)})` : '';
-  return `<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener noreferrer" class="mono" title="${titleAttr}">${truncateTokenHighlightLinkText(raw)}</a>${pnlPart}`;
+  return `<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener" class="mono" title="${titleAttr}">${truncateTokenHighlightLinkText(raw)}</a>${pnlPart}`;
 }
 
 function formatNum(n: number | string | null | undefined): string {
@@ -1120,7 +1120,7 @@ function renderSignaturePopupLink(signature: string | null | undefined, label = 
     : lowerLabel.includes('sell')
       ? 'wallet-tx-tone--sell'
       : '';
-  return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="wallet-tx-link ${toneClass}" title="${sig}" onclick="window.open(this.href,'solscanTx','popup=yes,width=1100,height=780,noopener,noreferrer'); return false;">${label}<span class="wallet-tx-popup-icon" aria-hidden="true">↗</span></a>`;
+  return `<a href="${href}" target="_blank" rel="noopener" class="wallet-tx-link ${toneClass}" title="${sig}" onclick="window.open(this.href,'solscanTx','popup=yes,width=1100,height=780,noopener'); return false;">${label}<span class="wallet-tx-popup-icon" aria-hidden="true">↗</span></a>`;
 }
 
 function renderLatestTradeCell(
@@ -1552,7 +1552,7 @@ function renderXProfileLink(url: string | null | undefined): string {
   if (!href) return '—';
   const match = href.match(/x\.com\/([^/?#]+)/i) || href.match(/twitter\.com\/([^/?#]+)/i);
   const handle = match?.[1] ? `@${match[1]}` : href;
-  return `<a href="${href}" target="_blank" rel="noopener noreferrer">${handle}</a>`;
+  return `<a href="${href}" target="_blank" rel="noopener">${handle}</a>`;
 }
 
 function applyTokenTopPnl24hColumnVisibility(): void {
@@ -1755,19 +1755,19 @@ function tokenStatSectionHtml(s: SectionSpec): string {
       <h3 class="token-stats-group-title">${s.icon}<span>${s.title}</span></h3>
       <div class="${rowsClass}">${rows}</div>
     </section>`;
-}
+  }
 
 function formatTokenUpdateTime(ts: number | undefined): string {
-  if (ts == null) return '—';
-  const d = new Date(ts * 1000);
-  return d.toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
+    if (ts == null) return '—';
+    const d = new Date(ts * 1000);
+    return d.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
 }
 
 function showSectionError(el: HTMLElement, msg: string): void {
@@ -1930,7 +1930,7 @@ function renderToken(t: TokenData, cohortVolume24hUsd?: number): void {
   const dashTxt = escapeHtmlText('—');
 
   const mintLink = mintTrim
-    ? `<a href="https://vybe.fyi/tokens/${encodeURIComponent(mintTrim)}" target="_blank" rel="noopener noreferrer" class="mono" title="${escapeHtmlAttr(mintTrim)}">${truncateMintMiddle(mintTrim)}</a>`
+    ? `<a href="https://vybe.fyi/tokens/${encodeURIComponent(mintTrim)}" target="_blank" rel="noopener" class="mono" title="${escapeHtmlAttr(mintTrim)}">${truncateMintMiddle(mintTrim)}</a>`
     : '';
   const decVal = t.decimal ?? t.decimals;
   const overview: SectionSpec = {
@@ -2014,7 +2014,7 @@ function renderToken(t: TokenData, cohortVolume24hUsd?: number): void {
         key: 'tokenVol24h',
         label: 'Token volume (24h)',
         valueHtml:
-          t.tokenAmountVolume24h != null
+        t.tokenAmountVolume24h != null
             ? escapeHtmlText(`${formatNum(t.tokenAmountVolume24h)}${sym ? ` ${sym}` : ''}`)
             : dashTxt,
       },
@@ -2176,7 +2176,7 @@ function renderWalletPnl(
     const linkText = truncateTokenHighlightLinkText(fullLabel);
     const logoUrl = matchedMetric?.tokenLogoUrl || token.tokenLogoUrl;
     const titleAttr = escapeHtmlAttr(`${fullLabel} · ${mint}`);
-    return `<span class="wallet-token-ref">${renderLogoImage(logoUrl, fullLabel, mint)}<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener noreferrer" class="mono" title="${titleAttr}">${linkText}</a></span>`;
+    return `<span class="wallet-token-ref">${renderLogoImage(logoUrl, fullLabel, mint)}<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener" class="mono" title="${titleAttr}">${linkText}</a></span>`;
   };
 
   const renderWalletPnlHighlightCard = (kind: 'best' | 'worst', token?: WalletPnlSummaryTokenRef): string => {
@@ -2202,8 +2202,8 @@ function renderWalletPnl(
         <div class="wallet-pnl-highlight-metrics">
           <span class="wallet-pnl-highlight-metric-label">Period PnL</span>
           <span class="wallet-pnl-highlight-metric-value ${pnlToneClass}">${pnl != null ? formatUsdFull(pnl) : '—'}</span>
-        </div>
       </div>
+        </div>
     </article>`;
   };
 
@@ -2216,12 +2216,12 @@ function renderWalletPnl(
       <div class="wallet-pnl-profile-header">
         <div class="wallet-pnl-profile-avatar-wrap" aria-hidden="true">
           ${renderWalletProfileAvatar(topTraderRow?.accountLogoUrl, topTraderRow?.accountName || ownerAddress)}
-        </div>
+      </div>
         <dl class="token-stats wallet-pnl-kv wallet-pnl-profile-kv">
-          <dt>Name:</dt><dd class="wallet-pnl-profile-value-emphasis"><a href="https://vybe.fyi/wallets/${encodeURIComponent(ownerAddress)}" target="_blank" rel="noopener noreferrer" class="mono" title="${ownerAddress}">${nameDisplay}</a></dd>
+          <dt>Name:</dt><dd class="wallet-pnl-profile-value-emphasis"><a href="https://vybe.fyi/wallets/${encodeURIComponent(ownerAddress)}" target="_blank" rel="noopener" class="mono" title="${ownerAddress}">${nameDisplay}</a></dd>
           <dt>X ACC:</dt><dd class="wallet-pnl-profile-value-emphasis">${renderXProfileLink(topTraderRow?.accountTwitterUrl)}</dd>
         </dl>
-      </div>
+        </div>
     </section>`;
 
   const pnlTradingHtml = `<section class="token-stats-group wallet-pnl-card wallet-pnl-card--pnl-trading">
@@ -2232,7 +2232,7 @@ function renderWalletPnl(
           <div class="wallet-pnl-metric-hero-item wallet-pnl-metric-hero-item--realized">
             <span class="wallet-pnl-metric-hero-label">Realized PnL</span>
             <span class="wallet-pnl-metric-hero-value">${formatUsdCell(mergedSummary.realizedPnlUsd)}</span>
-          </div>
+      </div>
           <div class="wallet-pnl-metric-hero-item wallet-pnl-metric-hero-item--unrealized">
             <span class="wallet-pnl-metric-hero-label">Unrealized PnL</span>
             <span class="wallet-pnl-metric-hero-value">${formatUsdCell(mergedSummary.unrealizedPnlUsd)}</span>
@@ -2352,7 +2352,7 @@ function renderWalletPnl(
       const mint = metric.mintAddress || '';
       const symbol = metric.tokenSymbol || metric.tokenName || (mint ? truncateAddress(mint) : '—');
       const tokenLink = mint
-        ? `<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener noreferrer" class="mono" title="${mint}">${symbol}</a>`
+        ? `<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener" class="mono" title="${mint}">${symbol}</a>`
         : symbol;
       const iconCell = renderLogoImage(metric.tokenLogoUrl, symbol, mint);
       const assetCell = mint
@@ -2460,13 +2460,13 @@ function renderTopTraders(
     : `GET /v4/wallets/top-traders (related wallets) with ${scope} returned 0 rows.`;
   topTradersCards.innerHTML = finalList.length
     ? finalList.map((row, i) => {
-      const rank = i + 1;
-      const addr = row.accountAddress;
-      const display = row.accountName || (addr ? truncateAddress(addr) : '—');
-      const accountLink = addr
-        ? `<a href="https://vybe.fyi/wallets/${encodeURIComponent(addr)}" target="_blank" rel="noopener noreferrer" class="mono" title="${addr}">${display}</a>`
-        : `<span class="mono">${display}</span>`;
-      const m = row.metrics || {};
+          const rank = i + 1;
+          const addr = row.accountAddress;
+          const display = row.accountName || (addr ? truncateAddress(addr) : '—');
+          const accountLink = addr
+        ? `<a href="https://vybe.fyi/wallets/${encodeURIComponent(addr)}" target="_blank" rel="noopener" class="mono" title="${addr}">${display}</a>`
+            : `<span class="mono">${display}</span>`;
+          const m = row.metrics || {};
       const labels = (row.accountLabels ?? []).filter((label) => (label || '').trim() !== '');
       const bestToken = m.bestPerformingToken;
       const worstToken = m.worstPerformingToken;
@@ -2478,7 +2478,7 @@ function renderTopTraders(
           <dt>Account</dt><dd>${accountLink}</dd>
           <dt>Name</dt><dd>${row.accountName || '—'}</dd>
           <dt>Logo</dt><dd>${renderLogoImage(row.accountLogoUrl, row.accountName || display)}</dd>
-          <dt>X (Twitter)</dt><dd>${row.accountTwitterUrl ? `<a href="${row.accountTwitterUrl}" target="_blank" rel="noopener noreferrer">${row.accountTwitterUrl}</a>` : '—'}</dd>
+          <dt>X (Twitter)</dt><dd>${row.accountTwitterUrl ? `<a href="${row.accountTwitterUrl}" target="_blank" rel="noopener">${row.accountTwitterUrl}</a>` : '—'}</dd>
           <dt>Labels</dt><dd>${labels.length ? labels.join(', ') : '—'}</dd>
           <dt>Realized PnL</dt><dd>${formatUsdCell(m.realizedPnlUsd)}</dd>
           <dt>Unrealized PnL</dt><dd>${formatUsdCell(m.unrealizedPnlUsd)}</dd>
@@ -2542,11 +2542,11 @@ function renderTokenTopPnlTraders(
       const addr = row.traderAddress;
       const display = row.name || (addr ? truncateAddress(addr) : '—');
       const traderLink = addr
-        ? `<a href="https://vybe.fyi/wallets/${encodeURIComponent(addr)}" target="_blank" rel="noopener noreferrer" class="mono" title="${addr}">${display}</a>`
+        ? `<a href="https://vybe.fyi/wallets/${encodeURIComponent(addr)}" target="_blank" rel="noopener" class="mono" title="${addr}">${display}</a>`
         : `<span class="mono">${display}</span>`;
       const vol24h = addr && Object.prototype.hasOwnProperty.call(volume24hByTrader, addr) ? volume24hByTrader[addr] : 0;
       const trades24h = addr && Object.prototype.hasOwnProperty.call(trades24hByTrader, addr) ? trades24hByTrader[addr] : 0;
-      return `<tr>
+          return `<tr>
         <td>${rank}</td>
         <td>${traderLink}</td>
         <td style="text-align:right">${formatUsdCellTokenTopPnl(row.realizedPnlUsd)}</td>
@@ -2727,25 +2727,25 @@ function renderPieLegendVolumePnlCard(
           <span class="token-tier-metric__ico token-tier-metric__ico--share-swatch" style="--tier-swatch:${swatchBg}" aria-hidden="true"></span>
           <div class="token-tier-metric__body">
             <span class="token-tier-metric__slice-pct">${formatPctSmart(slicePct)}</span><span class="token-tier-metric__muted"> share</span>
-          </div>
+        </div>
         </li>
         <li class="token-tier-metric">
           <span class="token-tier-metric__ico token-tier-metric__ico--usd" aria-hidden="true">$</span>
           <div class="token-tier-metric__body">
             <span class="token-tier-metric__accent-usd">${formatUsdFull(realizedUsd)}</span><span class="token-tier-metric__muted"> realized</span>
-          </div>
+      </div>
         </li>
         <li class="token-tier-metric">
           <span class="token-tier-metric__ico token-tier-metric__ico--layers" aria-hidden="true">${TIER_LEGEND_SVG_STACK}</span>
           <div class="token-tier-metric__body">
             <span class="token-tier-metric__vol-pnl-trades-val">${tradesCompact}</span><span class="token-tier-metric__muted">${tradesWord}</span>
-          </div>
+        </div>
         </li>
         <li class="token-tier-metric">
           <span class="token-tier-metric__ico token-tier-metric__ico--people" aria-hidden="true">${TIER_LEGEND_SVG_USER}</span>
           <div class="token-tier-metric__body">
             <span class="token-tier-metric__emph">${Math.max(0, Math.round(traderCount)).toLocaleString()}</span><span class="token-tier-metric__muted"> traders</span>
-          </div>
+      </div>
         </li>
         <li class="token-tier-metric token-tier-metric--total">
           <span class="token-tier-metric__ico token-tier-metric__ico--volume" aria-hidden="true">${TIER_LEGEND_SVG_VOLUME}</span>
@@ -2754,7 +2754,7 @@ function renderPieLegendVolumePnlCard(
             <span class="token-tier-metric__ratio token-tier-metric__ratio--vol-pnl-split">
               <span class="token-tier-metric__vol-pnl-slice-val">${volSlice}</span><span class="token-tier-metric__vol-pnl-totalvol-suffix"> / ${volTotal}</span>
             </span>
-          </div>
+        </div>
         </li>
       </ul>
     </article>
@@ -2803,7 +2803,7 @@ function renderPieLegendTradeTierRow(
           <span class="token-tier-metric__ico token-tier-metric__ico--share-swatch" style="--tier-swatch:${swatchBg}" aria-hidden="true"></span>
           <div class="token-tier-metric__body">
             <span class="token-tier-metric__slice-pct">${formatPctSmart(slicePct)}</span><span class="token-tier-metric__muted"> share</span>
-          </div>
+      </div>
         </li>
         <li class="token-tier-metric">
           <span class="token-tier-metric__ico token-tier-metric__ico--usd" aria-hidden="true">$</span>
@@ -2834,7 +2834,7 @@ function renderPieLegendTradeTierRow(
         </li>
       </ul>
     </article>
-  </div>`;
+    </div>`;
 }
 
 function renderTierPieLegendPlaceholder(fill: PieSliceSpec): string {
@@ -4092,7 +4092,7 @@ async function loadData(): Promise<void> {
   const tokenMode = false;
 
   hideSectionError(tokenSectionError);
-  hideSectionError(topTradersError);
+      hideSectionError(topTradersError);
   hideSectionError(tokenTopPnlError);
   fetchAllBtn.disabled = true;
   loadingIndicator.hidden = false;
