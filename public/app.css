@@ -40,7 +40,7 @@ body {
   color: #e4e4e7;
   min-height: 100vh;
   /* Lock desktop-style layouts site-wide; narrow viewports scroll horizontally. */
-  min-width: 920px;
+  min-width: 1200px;
 }
 
 .container {
