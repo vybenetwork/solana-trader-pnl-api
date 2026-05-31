@@ -677,7 +677,7 @@ function renderTruncatedTokenMintLink(token: WalletPnlSummaryTokenRef, pnlUsd?: 
   const raw = token.tokenSymbol || token.tokenName || truncateAddress(mint);
   const titleAttr = escapeHtmlAttr(`${raw} · ${mint}`);
   const pnlPart = pnlUsd != null ? ` (${formatUsdFull(pnlUsd)})` : '';
-  return `<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener" class="mono" title="${titleAttr}">${truncateTokenHighlightLinkText(raw)}</a>${pnlPart}`;
+  return `<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" class="mono" title="${titleAttr}">${truncateTokenHighlightLinkText(raw)}</a>${pnlPart}`;
 }
 
 function formatNum(n: number | string | null | undefined): string {
@@ -1122,7 +1122,7 @@ function renderSignaturePopupLink(signature: string | null | undefined, label = 
     : lowerLabel.includes('sell')
       ? 'wallet-tx-tone--sell'
       : '';
-  return `<a href="${href}" target="_blank" rel="noopener" class="wallet-tx-link ${toneClass}" title="${sig}" onclick="window.open(this.href,'solscanTx','popup=yes,width=1100,height=780,noopener'); return false;">${label}<span class="wallet-tx-popup-icon" aria-hidden="true">↗</span></a>`;
+  return `<a href="${href}" target="_blank" class="wallet-tx-link ${toneClass}" title="${sig}" onclick="window.open(this.href,'solscanTx','popup=yes,width=1100,height=780'); return false;">${label}<span class="wallet-tx-popup-icon" aria-hidden="true">↗</span></a>`;
 }
 
 function renderLatestTradeCell(
@@ -1554,7 +1554,7 @@ function renderXProfileLink(url: string | null | undefined): string {
   if (!href) return '—';
   const match = href.match(/x\.com\/([^/?#]+)/i) || href.match(/twitter\.com\/([^/?#]+)/i);
   const handle = match?.[1] ? `@${match[1]}` : href;
-  return `<a href="${href}" target="_blank" rel="noopener">${handle}</a>`;
+  return `<a href="${href}" target="_blank">${handle}</a>`;
 }
 
 function applyTokenTopPnl24hColumnVisibility(): void {
@@ -1932,7 +1932,7 @@ function renderToken(t: TokenData, cohortVolume24hUsd?: number): void {
   const dashTxt = escapeHtmlText('—');
 
   const mintLink = mintTrim
-    ? `<a href="https://vybe.fyi/tokens/${encodeURIComponent(mintTrim)}" target="_blank" rel="noopener" class="mono" title="${escapeHtmlAttr(mintTrim)}">${truncateMintMiddle(mintTrim)}</a>`
+    ? `<a href="https://vybe.fyi/tokens/${encodeURIComponent(mintTrim)}" target="_blank" class="mono" title="${escapeHtmlAttr(mintTrim)}">${truncateMintMiddle(mintTrim)}</a>`
     : '';
   const decVal = t.decimal ?? t.decimals;
   const overview: SectionSpec = {
@@ -2178,7 +2178,7 @@ function renderWalletPnl(
     const linkText = truncateTokenHighlightLinkText(fullLabel);
     const logoUrl = matchedMetric?.tokenLogoUrl || token.tokenLogoUrl;
     const titleAttr = escapeHtmlAttr(`${fullLabel} · ${mint}`);
-    return `<span class="wallet-token-ref">${renderLogoImage(logoUrl, fullLabel, mint)}<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener" class="mono" title="${titleAttr}">${linkText}</a></span>`;
+    return `<span class="wallet-token-ref">${renderLogoImage(logoUrl, fullLabel, mint)}<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" class="mono" title="${titleAttr}">${linkText}</a></span>`;
   };
 
   const renderWalletPnlHighlightCard = (kind: 'best' | 'worst', token?: WalletPnlSummaryTokenRef): string => {
@@ -2220,7 +2220,7 @@ function renderWalletPnl(
           ${renderWalletProfileAvatar(topTraderRow?.accountLogoUrl, topTraderRow?.accountName || ownerAddress)}
       </div>
         <dl class="token-stats wallet-pnl-kv wallet-pnl-profile-kv">
-          <dt>Name:</dt><dd class="wallet-pnl-profile-value-emphasis"><a href="https://vybe.fyi/wallets/${encodeURIComponent(ownerAddress)}" target="_blank" rel="noopener" class="mono" title="${ownerAddress}">${nameDisplay}</a></dd>
+          <dt>Name:</dt><dd class="wallet-pnl-profile-value-emphasis"><a href="https://vybe.fyi/wallets/${encodeURIComponent(ownerAddress)}" target="_blank" class="mono" title="${ownerAddress}">${nameDisplay}</a></dd>
           <dt>X ACC:</dt><dd class="wallet-pnl-profile-value-emphasis">${renderXProfileLink(topTraderRow?.accountTwitterUrl)}</dd>
         </dl>
         </div>
@@ -2354,7 +2354,7 @@ function renderWalletPnl(
       const mint = metric.mintAddress || '';
       const symbol = metric.tokenSymbol || metric.tokenName || (mint ? truncateAddress(mint) : '—');
       const tokenLink = mint
-        ? `<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" rel="noopener" class="mono" title="${mint}">${symbol}</a>`
+        ? `<a href="https://vybe.fyi/tokens/${encodeURIComponent(mint)}" target="_blank" class="mono" title="${mint}">${symbol}</a>`
         : symbol;
       const iconCell = renderLogoImage(metric.tokenLogoUrl, symbol, mint);
       const assetCell = mint
@@ -2466,7 +2466,7 @@ function renderTopTraders(
           const addr = row.accountAddress;
           const display = row.accountName || (addr ? truncateAddress(addr) : '—');
           const accountLink = addr
-        ? `<a href="https://vybe.fyi/wallets/${encodeURIComponent(addr)}" target="_blank" rel="noopener" class="mono" title="${addr}">${display}</a>`
+        ? `<a href="https://vybe.fyi/wallets/${encodeURIComponent(addr)}" target="_blank" class="mono" title="${addr}">${display}</a>`
             : `<span class="mono">${display}</span>`;
           const m = row.metrics || {};
       const labels = (row.accountLabels ?? []).filter((label) => (label || '').trim() !== '');
@@ -2480,7 +2480,7 @@ function renderTopTraders(
           <dt>Account</dt><dd>${accountLink}</dd>
           <dt>Name</dt><dd>${row.accountName || '—'}</dd>
           <dt>Logo</dt><dd>${renderLogoImage(row.accountLogoUrl, row.accountName || display)}</dd>
-          <dt>X (Twitter)</dt><dd>${row.accountTwitterUrl ? `<a href="${row.accountTwitterUrl}" target="_blank" rel="noopener">${row.accountTwitterUrl}</a>` : '—'}</dd>
+          <dt>X (Twitter)</dt><dd>${row.accountTwitterUrl ? `<a href="${row.accountTwitterUrl}" target="_blank">${row.accountTwitterUrl}</a>` : '—'}</dd>
           <dt>Labels</dt><dd>${labels.length ? labels.join(', ') : '—'}</dd>
           <dt>Realized PnL</dt><dd>${formatUsdCell(m.realizedPnlUsd)}</dd>
           <dt>Unrealized PnL</dt><dd>${formatUsdCell(m.unrealizedPnlUsd)}</dd>
@@ -2544,7 +2544,7 @@ function renderTokenTopPnlTraders(
       const addr = row.traderAddress;
       const display = row.name || (addr ? truncateAddress(addr) : '—');
       const traderLink = addr
-        ? `<a href="https://vybe.fyi/wallets/${encodeURIComponent(addr)}" target="_blank" rel="noopener" class="mono" title="${addr}">${display}</a>`
+        ? `<a href="https://vybe.fyi/wallets/${encodeURIComponent(addr)}" target="_blank" class="mono" title="${addr}">${display}</a>`
         : `<span class="mono">${display}</span>`;
       const vol24h = addr && Object.prototype.hasOwnProperty.call(volume24hByTrader, addr) ? volume24hByTrader[addr] : 0;
       const trades24h = addr && Object.prototype.hasOwnProperty.call(trades24hByTrader, addr) ? trades24hByTrader[addr] : 0;
