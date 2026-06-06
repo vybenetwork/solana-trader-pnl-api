@@ -39,7 +39,7 @@
   <meta name="twitter:image:alt" content="Solana Wallet Profit and Loss API app powered by Vybe API" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="app.css?v=249" />
+  <link rel="stylesheet" href="app.css?v=250" />
 </head>
 <body>
   <div class="container">
@@ -191,7 +191,7 @@
       <div id="realtimeExclusiveSurface">
       <div class="section-header">
         <span class="section-header__marker" aria-hidden="true"></span>
-        <h2 class="section-header__title">Remote filters</h2>
+        <h2 class="section-header__title">Remote Filters</h2>
       </div>
       <p class="remote-filters-help wallet-pnl-pnl-trading-lede">
         <strong>Remote filters</strong> map directly to Vybe query params for wallet PnL and the related-wallets leaderboard.
@@ -338,7 +338,7 @@
       <div id="historicalInputsBlock" hidden>
         <div class="section-header">
           <span class="section-header__marker" aria-hidden="true"></span>
-          <h2 class="section-header__title">Remote filters</h2>
+          <h2 class="section-header__title">Remote Filters</h2>
         </div>
         <p class="remote-filters-help wallet-pnl-pnl-trading-lede">
           <strong>Remote filters</strong> map to Vybe path param <code>ownerAddress</code> and query params <code>resolution</code> (1d / 1w / 1mo), optional <code>timeStart</code> and <code>timeEnd</code> (unix seconds). Leave time range empty to use API defaults.
@@ -418,7 +418,7 @@
       <div class="section-header">
         <div class="section-header-left">
           <span class="section-header__marker" aria-hidden="true"></span>
-          <h2 class="section-header__title">Token stats & metadata</h2>
+          <h2 class="section-header__title">Token Stats &amp; Metadata</h2>
           <div class="section-loading" id="tokenSectionLoading" hidden aria-hidden="true">
             <span class="loading-spinner"></span>
             <span class="loading-text">Loading…</span>
@@ -454,7 +454,7 @@
         <div class="token-supply-card token-supply-card--fullwidth token-supply-card--trade-tier-dash">
           <header class="token-trade-tier-dash__top">
             <div class="token-trade-tier-dash__titles">
-              <h2 class="token-stats-group-title" id="tokenTopTradesByProfitTitle">Profitable traders by activity (Last 30 Days)</h2>
+              <h2 class="token-stats-group-title" id="tokenTopTradesByProfitTitle">Profitable Traders By Activity (Last 30 Days)</h2>
               <p class="token-trade-tier-dash__lede wallet-pnl-pnl-trading-lede" id="tokenTradeTierLede"></p>
             </div>
             <aside class="token-trade-tier-dash__insight" aria-label="Insight">
@@ -465,7 +465,7 @@
 
           <div class="token-trade-tier-dash__main">
             <div class="token-trade-tier-dash__chart-col">
-              <h3 class="token-stats-group-title token-trade-tier-dash__chart-title">Share of total trades</h3>
+              <h3 class="token-stats-group-title token-trade-tier-dash__chart-title">Share Of Total Trades</h3>
               <p class="token-trade-tier-dash__chart-note wallet-pnl-pnl-trading-lede">
                 <span class="token-trade-tier-dash__note-ico" aria-hidden="true">ⓘ</span>
                 Slice size is share of trade count among profitable traders, not number of traders.
@@ -488,7 +488,7 @@
 
           <div id="tokenTradesCountSelectedRow" class="token-trade-tier-dash__trades-dist" hidden>
             <h3 class="token-stats-group-title token-trade-tier-dash__chart-title" id="tokenTradesCountSelectedTitle">
-              Trades count distribution (Last 30 Days)
+              Trades Count Distribution (Last 30 Days)
             </h3>
             <p class="token-trade-tier-dash__chart-note wallet-pnl-pnl-trading-lede" id="tokenSupplyCardDescTradesVertical"></p>
             <div
@@ -520,7 +520,7 @@
         >
           <header class="token-trade-tier-dash__top">
             <div class="token-trade-tier-dash__titles">
-              <h2 class="token-stats-group-title" id="tokenTopVolumeSelectedTitle">Profitable traders by volume (Last 30 Days)</h2>
+              <h2 class="token-stats-group-title" id="tokenTopVolumeSelectedTitle">Profitable Traders By Volume (Last 30 Days)</h2>
               <p class="token-trade-tier-dash__lede wallet-pnl-pnl-trading-lede" id="tokenVolumePnlLede"></p>
             </div>
             <aside class="token-trade-tier-dash__insight" aria-label="Volume insight">
@@ -530,7 +530,7 @@
           </header>
           <div class="token-trade-tier-dash__main">
             <div class="token-trade-tier-dash__chart-col">
-              <h3 class="token-stats-group-title token-trade-tier-dash__chart-title">Share of total volume</h3>
+              <h3 class="token-stats-group-title token-trade-tier-dash__chart-title">Share Of Total Volume</h3>
               <p class="token-trade-tier-dash__chart-note token-trade-tier-dash__chart-note--volume-share wallet-pnl-pnl-trading-lede">
                 <span class="token-trade-tier-dash__note-ico" aria-hidden="true">ⓘ</span>
                 Slice size is each band’s share of traded dollars in the top list; non‑positive PnL appears as an extra slice when present.
@@ -552,7 +552,7 @@
           </div>
 
           <div class="token-trade-tier-dash__pnl-dist">
-            <h3 class="token-stats-group-title token-trade-tier-dash__chart-title" id="tokenPnlSelectedTitle">PnL distribution</h3>
+            <h3 class="token-stats-group-title token-trade-tier-dash__chart-title" id="tokenPnlSelectedTitle">PnL Distribution</h3>
             <p class="token-trade-tier-dash__chart-note wallet-pnl-pnl-trading-lede" id="tokenSupplyCardDescPnl"></p>
             <div
               class="token-trades-vertical-bars token-trades-vertical-bars--cols8"
@@ -583,7 +583,7 @@
       <div class="section-header">
         <div class="section-header-left">
           <span class="section-header__marker" aria-hidden="true"></span>
-          <h2 class="section-header__title" id="walletTopTradersTitle">Related wallets (by realized PnL, 30d)</h2>
+          <h2 class="section-header__title" id="walletTopTradersTitle">Related Wallets (By Realized PnL, 30d)</h2>
           <div class="section-loading" id="topTradersLoading" hidden aria-hidden="true">
             <span class="loading-spinner"></span>
             <span class="loading-text">Loading…</span>
@@ -608,7 +608,7 @@
         <p class="wallet-pnl-pnl-trading-lede" id="walletPnlMeta">—</p>
         <div class="wallet-pnl-details" id="walletPnlDetails">
           <section class="token-stats-group">
-            <h3 class="token-stats-group-title"><span>Wallet PnL summary</span></h3>
+            <h3 class="token-stats-group-title"><span>Wallet PnL Summary</span></h3>
             <dl class="token-stats">
               <dt>Realized PnL</dt><dd>—</dd>
               <dt>Unrealized PnL</dt><dd>—</dd>
@@ -624,7 +624,7 @@
       <div class="section-header">
         <div class="section-header-left">
           <span class="section-header__marker" aria-hidden="true"></span>
-          <h2 class="section-header__title">Top PnL traders (by token)</h2>
+          <h2 class="section-header__title">Top PnL Traders (By Token)</h2>
           <div class="section-loading" id="tokenTopPnlLoading" hidden aria-hidden="true">
             <span class="loading-spinner"></span>
             <span class="loading-text">Loading…</span>
@@ -635,7 +635,7 @@
       <div class="top-traders-content">
         <p class="wallet-pnl-pnl-trading-lede" id="tokenTopPnlMeta">—</p>
         <div class="token-stats-group token-top-pnl-table-card">
-          <h3 class="token-stats-group-title"><span>Top PnL traders</span></h3>
+          <h3 class="token-stats-group-title"><span>Top PnL Traders</span></h3>
           <div class="table-wrap">
             <table id="tokenTopPnlTable">
               <thead>
@@ -661,7 +661,7 @@
     <section class="section-card section-card--holders panel" id="histPnlSection" hidden>
       <div class="section-header">
         <span class="section-header__marker" aria-hidden="true"></span>
-        <h2 class="section-header__title" id="histPnlHeading">Wallet PnL (historical)</h2>
+        <h2 class="section-header__title" id="histPnlHeading">Wallet PnL (Historical)</h2>
       </div>
       <p class="meta" id="histPnlMeta">—</p>
       <div class="table-wrap">
@@ -695,6 +695,6 @@
     </select>
   </div>
 
-  <script src="app.js?v=231"></script>
+  <script src="app.js?v=232"></script>
 </body>
 </html>

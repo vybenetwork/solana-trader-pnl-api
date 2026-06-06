@@ -832,6 +832,8 @@ body {
   font-size: 1.05rem;
   font-weight: 650;
   color: #f4f4f5;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .section-card.panel {
@@ -1173,7 +1175,16 @@ body {
 
 .section-header h2 {
   margin: 0;
-  line-height: 1.5;
+  line-height: 40px;
+  height: 40px;
+}
+
+.section-header .section-loading,
+.section-header .section-error,
+.section-header .section-warning {
+  align-self: center;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .section-header h2.section-header__title,
@@ -1181,6 +1192,8 @@ body {
   font-size: 1.05rem;
   font-weight: 650;
   color: #f4f4f5;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .section-header--trades {
@@ -1561,11 +1574,11 @@ button:not(.vybe-action-btn):active {
 }
 
 .panel h2.token-stats-group-title {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: #a1a1aa;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: #d4d4d8;
+  text-transform: none;
+  letter-spacing: 0.01em;
   margin: 0 0 1rem 0;
 }
 
@@ -1712,11 +1725,11 @@ button:not(.vybe-action-btn):active {
   margin: 0 0 0.5rem;
   padding-bottom: 0.45rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #a1a1aa;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: #d4d4d8;
 }
 
 .token-section-content .token-stat-rows {
@@ -2093,11 +2106,11 @@ button:not(.vybe-action-btn):active {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: #a1a1aa;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: #d4d4d8;
+  text-transform: none;
+  letter-spacing: 0.01em;
   margin: 0;
 }
 
@@ -2151,8 +2164,8 @@ button:not(.vybe-action-btn):active {
 }
 
 .token-supply-panel h2 {
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  text-transform: none;
+  letter-spacing: 0.01em;
 }
 
 .token-supply-subheader {

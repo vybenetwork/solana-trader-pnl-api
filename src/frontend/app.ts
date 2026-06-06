@@ -352,7 +352,7 @@ function getTokenResolutionAfterWalletSwitch(): string {
 }
 
 function applyWalletTopTradersTitle(): void {
-  walletTopTradersTitle.textContent = `Related wallets (by realized PnL, ${getWalletResolution()})`;
+  walletTopTradersTitle.textContent = `Related Wallets (By Realized PnL, ${getWalletResolution()})`;
 }
 
 function normalizeWalletResolution(value: string): string {
@@ -1960,7 +1960,7 @@ function renderToken(t: TokenData, cohortVolume24hUsd?: number): void {
   };
   const priceSection: SectionSpec = {
     icon: tokenSectionIcons.price,
-    title: 'Price & market cap',
+    title: 'Price & Market Cap',
     theme: 'price',
     rows: [
       {
@@ -2001,7 +2001,7 @@ function renderToken(t: TokenData, cohortVolume24hUsd?: number): void {
   };
   const supplyVolumeSection: SectionSpec = {
     icon: tokenSectionIcons.supply,
-    title: 'Supply & volume (24h)',
+    title: 'Supply & Volume (24h)',
     theme: 'supply',
     rows: [
       {
@@ -2062,7 +2062,7 @@ function buildTokenStatsPlaceholderHtml(): string {
   };
   const priceSection: SectionSpec = {
     icon: tokenSectionIcons.price,
-    title: 'Price & market cap',
+    title: 'Price & Market Cap',
     theme: 'price',
     rows: [
       { key: 'priceUsd', label: 'Price (USD)', valueHtml: d },
@@ -2073,7 +2073,7 @@ function buildTokenStatsPlaceholderHtml(): string {
   };
   const supplyVolumeSection: SectionSpec = {
     icon: tokenSectionIcons.supply,
-    title: 'Supply & volume (24h)',
+    title: 'Supply & Volume (24h)',
     theme: 'supply',
     rows: [
       { key: 'supply', label: 'Current supply', valueHtml: d },
