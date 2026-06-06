@@ -808,8 +808,25 @@ body {
 
 .section-card .section-header {
   gap: 0.5rem 0.75rem;
-  padding-bottom: 0.55rem;
-  margin-bottom: 0;
+  padding-bottom: 0.65rem;
+  margin-bottom: 0.15rem;
+}
+
+.section-lede.meta {
+  margin: 0 0 0.85rem;
+  padding: 0.55rem 0.75rem;
+  max-width: fit-content;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: #a1a1aa;
+  background: rgba(9, 9, 11, 0.55);
+  border: 1px solid rgba(63, 63, 70, 0.35);
+  border-radius: 8px;
+}
+
+.section-lede.meta strong {
+  color: #d4d4d8;
+  font-weight: 600;
 }
 
 .section-header__marker {
@@ -1182,6 +1199,8 @@ body {
 .section-header .section-loading,
 .section-header .section-error,
 .section-header .section-warning {
+  margin: 0 0 0 6px;
+  max-height: 30px;
   align-self: center;
   flex-shrink: 1;
   min-width: 0;
@@ -1397,14 +1416,16 @@ body {
 }
 
 .section-header .section-loading {
-  margin: 0;
+  margin: 0 0 0 6px;
+  max-height: 30px;
   font-size: 0.8rem;
   line-height: 1.5;
   align-self: center;
 }
 
 .section-header .section-error {
-  margin: 0;
+  margin: 0 0 0 6px;
+  max-height: 30px;
   align-self: center;
 }
 
@@ -3199,7 +3220,7 @@ button:not(.vybe-action-btn):active {
   margin: 0 0 0.75rem 0;
 }
 
-.token-supply-period-desc.wallet-pnl-pnl-trading-lede {
+.token-supply-period-desc.section-lede.meta {
   margin: 0 0 26px 0;
 }
 

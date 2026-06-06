@@ -39,7 +39,7 @@
   <meta name="twitter:image:alt" content="Solana Wallet Profit and Loss API app powered by Vybe API" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="app.css?v=250" />
+  <link rel="stylesheet" href="app.css?v=251" />
 </head>
 <body>
   <div class="container">
@@ -193,9 +193,9 @@
         <span class="section-header__marker" aria-hidden="true"></span>
         <h2 class="section-header__title">Remote Filters</h2>
       </div>
-      <p class="remote-filters-help wallet-pnl-pnl-trading-lede">
+      <div class="section-lede meta remote-filters-help">
         <strong>Remote filters</strong> map directly to Vybe query params for wallet PnL and the related-wallets leaderboard.
-      </p>
+      </div>
 
       <div class="candles-mint-resolution-row remote-top-row">
         <div class="field mint-query-field">
@@ -340,9 +340,9 @@
           <span class="section-header__marker" aria-hidden="true"></span>
           <h2 class="section-header__title">Remote Filters</h2>
         </div>
-        <p class="remote-filters-help wallet-pnl-pnl-trading-lede">
+        <div class="section-lede meta remote-filters-help">
           <strong>Remote filters</strong> map to Vybe path param <code>ownerAddress</code> and query params <code>resolution</code> (1d / 1w / 1mo), optional <code>timeStart</code> and <code>timeEnd</code> (unix seconds). Leave time range empty to use API defaults.
-        </p>
+        </div>
 
         <div class="candles-mint-resolution-row remote-top-row">
           <div class="field mint-query-field">
@@ -449,7 +449,7 @@
         <span class="section-header__marker" aria-hidden="true"></span>
         <h2 class="section-header__title token-supply-period-title" id="tokenSupplySelectedTitle">30 Days</h2>
       </div>
-      <p class="token-supply-period-desc wallet-pnl-pnl-trading-lede">Volume, PnL, and trade-count charts follow the resolution you pick below.</p>
+      <div class="section-lede meta token-supply-period-desc">Volume, PnL, and trade-count charts follow the resolution you pick below.</div>
       <div class="token-supply-grid token-supply-grid--trade-count-pie-row token-supply-grid--section-gap">
         <div class="token-supply-card token-supply-card--fullwidth token-supply-card--trade-tier-dash">
           <header class="token-trade-tier-dash__top">
@@ -592,7 +592,7 @@
         <span class="section-error" id="topTradersError" hidden aria-hidden="true"></span>
       </div>
       <div class="top-traders-content" id="topTradersContentWrap">
-        <p class="wallet-pnl-pnl-trading-lede" id="topTradersMeta">—</p>
+        <div class="section-lede meta" id="topTradersMeta">—</div>
         <div class="wallet-top-traders-grid" id="topTradersCards">
           <section class="token-stats-group wallet-top-trader-card">
             <h3 class="token-stats-group-title"><span>Wallet</span></h3>
@@ -605,7 +605,7 @@
             </dl>
           </section>
         </div>
-        <p class="wallet-pnl-pnl-trading-lede" id="walletPnlMeta">—</p>
+        <div class="section-lede meta" id="walletPnlMeta">—</div>
         <div class="wallet-pnl-details" id="walletPnlDetails">
           <section class="token-stats-group">
             <h3 class="token-stats-group-title"><span>Wallet PnL Summary</span></h3>
@@ -633,7 +633,7 @@
         <span class="section-error" id="tokenTopPnlError" hidden aria-hidden="true"></span>
       </div>
       <div class="top-traders-content">
-        <p class="wallet-pnl-pnl-trading-lede" id="tokenTopPnlMeta">—</p>
+        <div class="section-lede meta" id="tokenTopPnlMeta">—</div>
         <div class="token-stats-group token-top-pnl-table-card">
           <h3 class="token-stats-group-title"><span>Top PnL Traders</span></h3>
           <div class="table-wrap">
@@ -663,7 +663,7 @@
         <span class="section-header__marker" aria-hidden="true"></span>
         <h2 class="section-header__title" id="histPnlHeading">Wallet PnL (Historical)</h2>
       </div>
-      <p class="meta" id="histPnlMeta">—</p>
+      <div class="section-lede meta" id="histPnlMeta">—</div>
       <div class="table-wrap">
         <table id="histPnlTable">
           <thead id="histPnlTableHead"></thead>
