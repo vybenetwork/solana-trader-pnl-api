@@ -39,7 +39,7 @@
   <meta name="twitter:image:alt" content="Solana Wallet Profit and Loss API app powered by Vybe API" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="app.css?v=248" />
+  <link rel="stylesheet" href="app.css?v=249" />
 </head>
 <body>
   <div class="container">
@@ -190,7 +190,8 @@
 
       <div id="realtimeExclusiveSurface">
       <div class="section-header">
-        <h2 class="token-stats-group-title">Remote filters</h2>
+        <span class="section-header__marker" aria-hidden="true"></span>
+        <h2 class="section-header__title">Remote filters</h2>
       </div>
       <p class="remote-filters-help wallet-pnl-pnl-trading-lede">
         <strong>Remote filters</strong> map directly to Vybe query params for wallet PnL and the related-wallets leaderboard.
@@ -336,7 +337,8 @@
 
       <div id="historicalInputsBlock" hidden>
         <div class="section-header">
-          <h2 class="token-stats-group-title">Remote filters</h2>
+          <span class="section-header__marker" aria-hidden="true"></span>
+          <h2 class="section-header__title">Remote filters</h2>
         </div>
         <p class="remote-filters-help wallet-pnl-pnl-trading-lede">
           <strong>Remote filters</strong> map to Vybe path param <code>ownerAddress</code> and query params <code>resolution</code> (1d / 1w / 1mo), optional <code>timeStart</code> and <code>timeEnd</code> (unix seconds). Leave time range empty to use API defaults.
@@ -414,10 +416,13 @@
 
     <section class="section-card section-card--token token-section panel" id="tokenSection" hidden>
       <div class="section-header">
-        <h2 class="token-stats-group-title">Token stats & metadata</h2>
-        <div class="section-loading" id="tokenSectionLoading" hidden aria-hidden="true">
-          <span class="loading-spinner"></span>
-          <span class="loading-text">Loading…</span>
+        <div class="section-header-left">
+          <span class="section-header__marker" aria-hidden="true"></span>
+          <h2 class="section-header__title">Token stats & metadata</h2>
+          <div class="section-loading" id="tokenSectionLoading" hidden aria-hidden="true">
+            <span class="loading-spinner"></span>
+            <span class="loading-text">Loading…</span>
+          </div>
         </div>
         <span class="section-error" id="tokenSectionError" hidden aria-hidden="true"></span>
       </div>
@@ -441,7 +446,8 @@
 
     <section class="section-card section-card--chart panel token-supply-panel" id="tokenSupplyPanelTotal" hidden>
       <div class="section-header token-supply-period-header">
-        <h2 class="token-supply-period-title token-stats-group-title" id="tokenSupplySelectedTitle">30 Days</h2>
+        <span class="section-header__marker" aria-hidden="true"></span>
+        <h2 class="section-header__title token-supply-period-title" id="tokenSupplySelectedTitle">30 Days</h2>
       </div>
       <p class="token-supply-period-desc wallet-pnl-pnl-trading-lede">Volume, PnL, and trade-count charts follow the resolution you pick below.</p>
       <div class="token-supply-grid token-supply-grid--trade-count-pie-row token-supply-grid--section-gap">
@@ -575,10 +581,13 @@
 
     <section class="section-card section-card--traders top-traders-section panel" id="topTradersSection">
       <div class="section-header">
-        <h2 class="token-stats-group-title" id="walletTopTradersTitle">Related wallets (by realized PnL, 30d)</h2>
-        <div class="section-loading" id="topTradersLoading" hidden aria-hidden="true">
-          <span class="loading-spinner"></span>
-          <span class="loading-text">Loading…</span>
+        <div class="section-header-left">
+          <span class="section-header__marker" aria-hidden="true"></span>
+          <h2 class="section-header__title" id="walletTopTradersTitle">Related wallets (by realized PnL, 30d)</h2>
+          <div class="section-loading" id="topTradersLoading" hidden aria-hidden="true">
+            <span class="loading-spinner"></span>
+            <span class="loading-text">Loading…</span>
+          </div>
         </div>
         <span class="section-error" id="topTradersError" hidden aria-hidden="true"></span>
       </div>
@@ -613,10 +622,13 @@
 
     <section class="section-card section-card--summary top-traders-section panel token-top-pnl-section" id="tokenTopPnlSection" hidden>
       <div class="section-header">
-        <h2 class="token-stats-group-title">Top PnL traders (by token)</h2>
-        <div class="section-loading" id="tokenTopPnlLoading" hidden aria-hidden="true">
-          <span class="loading-spinner"></span>
-          <span class="loading-text">Loading…</span>
+        <div class="section-header-left">
+          <span class="section-header__marker" aria-hidden="true"></span>
+          <h2 class="section-header__title">Top PnL traders (by token)</h2>
+          <div class="section-loading" id="tokenTopPnlLoading" hidden aria-hidden="true">
+            <span class="loading-spinner"></span>
+            <span class="loading-text">Loading…</span>
+          </div>
         </div>
         <span class="section-error" id="tokenTopPnlError" hidden aria-hidden="true"></span>
       </div>
@@ -648,7 +660,8 @@
 
     <section class="section-card section-card--holders panel" id="histPnlSection" hidden>
       <div class="section-header">
-        <h2 class="token-stats-group-title" id="histPnlHeading">Wallet PnL (historical)</h2>
+        <span class="section-header__marker" aria-hidden="true"></span>
+        <h2 class="section-header__title" id="histPnlHeading">Wallet PnL (historical)</h2>
       </div>
       <p class="meta" id="histPnlMeta">—</p>
       <div class="table-wrap">
