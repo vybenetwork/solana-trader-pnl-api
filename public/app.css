@@ -576,7 +576,7 @@ body {
   color: #bfdbfe;
 }
 
-.page-masthead__btn--demo-token .page-masthead__demo-icon-wrap {
+.page-masthead__btn--demo-token .page-masthead__demo-preview {
   background: rgba(59, 130, 246, 0.22);
   color: #60a5fa;
 }
@@ -596,7 +596,7 @@ body {
   color: #99f6e4;
 }
 
-.page-masthead__btn--demo-wallet .page-masthead__demo-icon-wrap {
+.page-masthead__btn--demo-wallet .page-masthead__demo-preview {
   background: rgba(20, 184, 166, 0.22);
   color: #2dd4bf;
 }
@@ -616,7 +616,7 @@ body {
   color: #ddd6fe;
 }
 
-.page-masthead__btn--demo-holders .page-masthead__demo-icon-wrap {
+.page-masthead__btn--demo-holders .page-masthead__demo-preview {
   background: rgba(139, 92, 246, 0.22);
   color: #a78bfa;
 }
@@ -636,7 +636,7 @@ body {
   color: #fecdd3;
 }
 
-.page-masthead__btn--demo-traders .page-masthead__demo-icon-wrap {
+.page-masthead__btn--demo-traders .page-masthead__demo-preview {
   background: rgba(244, 63, 94, 0.22);
   color: #fb7185;
 }
@@ -648,6 +648,26 @@ body {
   transform: translateY(-1px);
   text-decoration: none;
   box-shadow: 0 4px 14px rgba(244, 63, 94, 0.18);
+}
+
+.page-masthead__btn--demo-swap {
+  background: linear-gradient(135deg, rgba(20, 241, 149, 0.16) 0%, rgba(153, 69, 255, 0.1) 100%);
+  border-color: rgba(20, 241, 149, 0.32);
+  color: #bbf7d0;
+}
+
+.page-masthead__btn--demo-swap .page-masthead__demo-preview {
+  background: rgba(20, 241, 149, 0.22);
+  color: #14f195;
+}
+
+.page-masthead__btn--demo-swap:hover {
+  background: rgba(20, 241, 149, 0.3);
+  border-color: rgba(20, 241, 149, 0.55);
+  color: #fff;
+  transform: translateY(-1px);
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(20, 241, 149, 0.18);
 }
 
 @media (max-width: 1024px) {
