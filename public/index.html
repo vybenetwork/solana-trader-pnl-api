@@ -39,7 +39,7 @@
   <meta name="twitter:image:alt" content="Solana Wallet Profit and Loss API app powered by Vybe API" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="app.css?v=252" />
+    <link rel="stylesheet" href="app.css?v=254" />
 </head>
 <body>
   <div class="container">
@@ -180,37 +180,37 @@
     </header>
 
     <section class="section-card section-card--inputs inputs panel">
-      <div class="candles-mint-resolution-row remote-top-row inputs-endpoint-mode-bar" id="endpointModeBar">
-        <div class="field endpoint-mode-field site-header__endpoint" id="endpointModeField">
-          <label class="site-header__endpoint-label" for="endpointModeHistorical">
-            <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
-            Endpoint mode
-          </label>
-          <div class="trades-fetch-control">
-            <label class="trades-fetch-switch" id="endpointModeSwitchLabel" title="Switch between Realtime (wallet PnL + related wallets) and Historical (PnL timeseries).">
-              <input type="checkbox" id="endpointModeHistorical" class="trades-fetch-switch-input" />
-              <span class="trades-fetch-switch-track">
-                <span class="trades-fetch-switch-option" data-value="single">
-                  <svg class="endpoint-mode-switch-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
-                  Realtime
-                </span>
-                <span class="trades-fetch-switch-option" data-value="paged">
-                  <svg class="endpoint-mode-switch-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
-                  Historical
-                </span>
+      <div class="field endpoint-mode-field site-header__endpoint" id="endpointModeField">
+        <label class="site-header__endpoint-label" for="endpointModeHistorical">
+          <span class="label-icon field-icon icon-grid" aria-hidden="true"></span>
+          Endpoint mode
+        </label>
+        <div class="trades-fetch-control">
+          <label class="trades-fetch-switch" id="endpointModeSwitchLabel" title="Switch between Realtime (wallet PnL + related wallets) and Historical (PnL timeseries).">
+            <input type="checkbox" id="endpointModeHistorical" class="trades-fetch-switch-input" />
+            <span class="trades-fetch-switch-track">
+              <span class="trades-fetch-switch-option" data-value="single">
+                <svg class="endpoint-mode-switch-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
+                Realtime
               </span>
-            </label>
-          </div>
+              <span class="trades-fetch-switch-option" data-value="paged">
+                <svg class="endpoint-mode-switch-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+                Historical
+              </span>
+            </span>
+          </label>
         </div>
       </div>
 
       <div id="realtimeExclusiveSurface">
-      <div class="section-header">
-        <span class="section-header__marker" aria-hidden="true"></span>
-        <h2 class="section-header__title">Remote Filters</h2>
-      </div>
-      <div class="section-lede meta remote-filters-help">
-        <strong>Remote filters</strong> map directly to Vybe query params for wallet PnL and the related-wallets leaderboard.
+      <div class="section-heading">
+        <div class="section-header">
+          <span class="section-header__marker" aria-hidden="true"></span>
+          <h2 class="section-header__title">Remote Filters</h2>
+        </div>
+        <div class="section-lede meta remote-filters-help">
+          <strong>Remote filters</strong> map directly to Vybe query params for wallet PnL and the related-wallets leaderboard.
+        </div>
       </div>
 
       <div class="candles-mint-resolution-row remote-top-row">
@@ -352,12 +352,14 @@
       </div>
 
       <div id="historicalInputsBlock" hidden>
-        <div class="section-header">
-          <span class="section-header__marker" aria-hidden="true"></span>
-          <h2 class="section-header__title">Remote Filters</h2>
-        </div>
-        <div class="section-lede meta remote-filters-help">
-          <strong>Remote filters</strong> map to Vybe path param <code>ownerAddress</code> and query params <code>resolution</code> (1d / 1w / 1mo), optional <code>timeStart</code> and <code>timeEnd</code> (unix seconds). Leave time range empty to use API defaults.
+        <div class="section-heading">
+          <div class="section-header">
+            <span class="section-header__marker" aria-hidden="true"></span>
+            <h2 class="section-header__title">Remote Filters</h2>
+          </div>
+          <div class="section-lede meta remote-filters-help">
+            <strong>Remote filters</strong> map to Vybe path param <code>ownerAddress</code> and query params <code>resolution</code> (1d / 1w / 1mo), optional <code>timeStart</code> and <code>timeEnd</code> (unix seconds). Leave time range empty to use API defaults.
+          </div>
         </div>
 
         <div class="candles-mint-resolution-row remote-top-row">

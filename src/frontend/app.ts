@@ -427,12 +427,21 @@ function histResolutionOptions(): Array<{ value: string; label: string }> {
   ];
 }
 
+function placeEndpointModeInFilterRow(): void {
+  const historical = getEndpointMode() === 'historical';
+  const row = historical
+    ? historicalInputsBlock.querySelector('.remote-top-row')
+    : realtimeExclusiveSurface.querySelector('.remote-top-row');
+  if (row) row.insertBefore(endpointModeField, row.firstChild);
+}
+
 function applyEndpointModeUI(): void {
   const mode = getEndpointMode();
   const historical = mode === 'historical';
 
   realtimeExclusiveSurface.hidden = historical;
   historicalInputsBlock.hidden = !historical;
+  placeEndpointModeInFilterRow();
   histPnlSection.hidden = !historical;
   topTradersSection.hidden = historical;
 

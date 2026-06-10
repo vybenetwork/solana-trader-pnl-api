@@ -865,6 +865,36 @@ body {
   margin-bottom: 0.15rem;
 }
 
+.section-heading {
+  flex: 0 0 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin-bottom: 0;
+  align-self: flex-start;
+}
+
+.section-heading .section-header {
+  width: 100%;
+  min-height: 40px;
+  max-height: 40px;
+  padding-bottom: 0;
+  margin-bottom: 0;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.section-heading .section-lede.meta {
+  margin: 0;
+  max-width: fit-content;
+}
+
+.inputs.panel.section-card--inputs {
+  row-gap: 0.5rem;
+}
+
 .section-lede.meta {
   margin: 0 0 0.85rem;
   padding: 0.55rem 0.75rem;
@@ -884,6 +914,7 @@ body {
 
 .section-header__marker {
   flex-shrink: 0;
+  align-self: center;
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -1080,12 +1111,7 @@ body {
 }
 
 .remote-filters-help {
-  margin: 0 0 13px 0;
-  flex-basis: 100%;
-  font-size: 0.74rem;
-  line-height: 1.4;
-  color: #71717a;
-  font-weight: 400;
+  margin: 0;
 }
 
 .field-control {
@@ -1243,6 +1269,16 @@ body {
   max-height: 40px;
 }
 
+.panel .section-header h2,
+.section-header h2.section-header__title {
+  margin: 0;
+  line-height: 40px;
+  height: 40px;
+  color: #f4f4f5;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
 .section-header h2 {
   margin: 0;
   line-height: 40px;
@@ -1252,6 +1288,8 @@ body {
 .section-header .section-loading,
 .section-header .section-error,
 .section-header .section-warning {
+  margin: 0 0 0 6px;
+  max-height: 30px;
   align-self: center;
   flex-shrink: 1;
   min-width: 0;
@@ -1275,7 +1313,9 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-height: 40px;
+  min-width: 0;
 }
 
 .trades-fetch-control {
@@ -1292,6 +1332,11 @@ body {
 .remote-top-row .endpoint-mode-field {
   flex: 0 0 auto;
   min-width: 0;
+  margin-right: 0;
+}
+
+.remote-top-row .endpoint-mode-field .trades-fetch-switch-track {
+  min-width: 11.5rem;
 }
 
 .remote-top-row .top-mode-switch {
@@ -4513,10 +4558,6 @@ html {
 *::-webkit-scrollbar-thumb {
   background-color: #71717a;
   border-radius: 999px;
-}
-
-.inputs-endpoint-mode-bar {
-  margin-bottom: 10px;
 }
 
 .construction-callout {
