@@ -1195,17 +1195,17 @@ function walletPieCountUnitWord(pieTitle: string): string {
 function walletPieLegendDisplaySlices(title: string, slices: WalletPieSlice[]): WalletPieSlice[] {
   const all = slices.map((slice) => ({ ...slice, value: Math.max(0, Number(slice.value) || 0) }));
   const t = title.toLowerCase();
-  const byLabel = (needle: string) =>
-    all.find((slice) => slice.label.toLowerCase().includes(needle));
+  const byLabelStarts = (prefix: string) =>
+    all.find((slice) => slice.label.toLowerCase().startsWith(prefix));
 
   if (t.includes('winning') && t.includes('losing')) {
     return [
-      byLabel('winning') ?? {
+      byLabelStarts('winning') ?? {
         label: 'Winning Trades',
         value: 0,
         color: tradeScaleBarGradientPair(0),
       },
-      byLabel('losing') ?? {
+      byLabelStarts('losing') ?? {
         label: 'Losing Trades',
         value: 0,
         color: VOLUME_PNL_PIE_NONPOSITIVE_FILL,
@@ -1214,21 +1214,18 @@ function walletPieLegendDisplaySlices(title: string, slices: WalletPieSlice[]): 
   }
 
   if (t.includes('open') && t.includes('closed') && t.includes('position')) {
-    const rows: WalletPieSlice[] = [
-      byLabel('open') ?? {
+    return [
+      byLabelStarts('open') ?? {
         label: 'Open Positions',
         value: 0,
         color: { dark: '#475569', light: '#94a3b8' },
       },
-      byLabel('closed') ?? {
+      byLabelStarts('closed') ?? {
         label: 'Closed Positions',
         value: 0,
         color: { dark: '#1d4ed8', light: '#93c5fd' },
       },
     ];
-    const other = byLabel('other');
-    if (other && other.value > 0) rows.push(other);
-    return rows;
   }
 
   return all.filter((slice) => slice.value > 0);
@@ -2310,11 +2307,9 @@ function renderWalletPnl(
   const statusSlices = (() => {
     const openCount = tokenMetrics.filter((metric) => (metric.status || '').toLowerCase() === 'open').length;
     const closedCount = tokenMetrics.filter((metric) => (metric.status || '').toLowerCase() === 'closed').length;
-    const otherCount = Math.max(0, tokenMetrics.length - openCount - closedCount);
     return [
       { label: 'Open Positions', value: openCount, color: { dark: '#475569', light: '#94a3b8' } },
       { label: 'Closed Positions', value: closedCount, color: { dark: '#1d4ed8', light: '#93c5fd' } },
-      { label: 'Other', value: otherCount, color: { dark: '#1e3a8a', light: '#60a5fa' } },
     ];
   })();
 
