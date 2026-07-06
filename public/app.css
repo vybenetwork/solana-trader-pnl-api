@@ -3749,7 +3749,7 @@ button:not(.vybe-action-btn):active {
 .wallet-pnl-profile-avatar {
   width: 56px;
   height: 56px;
-  border-radius: 14px;
+  border-radius: 32px;
   object-fit: cover;
   display: block;
   border: 2px solid rgba(96, 165, 250, 0.35);
