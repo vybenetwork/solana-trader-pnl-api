@@ -731,6 +731,7 @@ function formatUsdFull(n: number | null | undefined): string {
   if (n == null) return '—';
   const num = Number(n);
   if (Number.isNaN(num)) return '—';
+  if (num > 0 && num < 0.01) return '$0.01';
   const roundedToCent = Math.round(num * 100) / 100;
   if (roundedToCent === 0) return '$0';
   const abs = Math.abs(num);
