@@ -303,7 +303,7 @@ const MAX_FETCH_RETRIES = 5;
 const FETCH_RETRY_DELAY_MS = 2000;
 const DEMO_MINT = 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263';
 const DEMO_WALLET = 'CyaE1VxvBrahnPWkqm5VsdCvyS2QmNht2UFrKJHga54o';
-const FALLBACK_LOGO_URL = 'https://solana.com/src/img/branding/solanaLogoMark.png';
+const FALLBACK_LOGO_URL = '/solana-token-placeholder.png';
 /** CoinMarketCap generic icon for pump.fun–style tokens when the API supplies no logo. */
 const PUMP_MINT_FALLBACK_LOGO_URL =
   'https://s2.coinmarketcap.com/static/img/coins/64x64/36507.png';

@@ -4116,8 +4116,8 @@ button:not(.vybe-action-btn):active {
 }
 
 .wallet-logo-avatar {
-  width: 14px;
-  height: 14px;
+  width: 24px;
+  height: 24px;
   border-radius: 999px;
   object-fit: cover;
   display: inline-block;
@@ -4201,9 +4201,9 @@ button:not(.vybe-action-btn):active {
 
 .wallet-assets-table th:nth-child(1),
 .wallet-assets-table td:nth-child(1) {
-  width: 22px !important;
-  min-width: 22px !important;
-  max-width: 22px !important;
+  width: 24px !important;
+  min-width: 23px !important;
+  max-width: 24px !important;
   padding-left: 0.05rem !important;
   padding-right: 0.15rem !important;
 }
