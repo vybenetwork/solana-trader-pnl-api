@@ -2694,7 +2694,7 @@ button:not(.vybe-action-btn):active {
   display: flex;
   align-items: center;
   gap: 0.42rem;
-  font-size: 0.66rem;
+  font-size: 0.76rem;
   line-height: 1.35;
   margin: 0;
 }
@@ -3531,6 +3531,7 @@ button:not(.vybe-action-btn):active {
   min-height: 0;
   display: flex;
   flex-direction: column;
+  max-height: 410px;
 }
 
 .wallet-pnl-card {
@@ -3646,7 +3647,7 @@ button:not(.vybe-action-btn):active {
   }
 
   .wallet-pnl-pie-wrap {
-    grid-template-columns: minmax(0, min(32cqw, 9.875rem)) minmax(0, 1fr);
+    grid-template-columns: minmax(0, min(32cqw, 7.875rem)) minmax(0, 1fr);
   }
 
   .wallet-pnl-pie-chart.token-supply-pie {
@@ -3682,7 +3683,7 @@ button:not(.vybe-action-btn):active {
 .wallet-pnl-pie-legend--tier-match .token-tier-card__title--wallet-pie {
   text-transform: none;
   letter-spacing: 0.02em;
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   font-weight: 600;
 }
 
@@ -4071,7 +4072,7 @@ button:not(.vybe-action-btn):active {
 }
 
 .wallet-trend-table {
-  font-size: 0.78rem;
+  font-size: 0.96rem;
 }
 
 .wallet-trend-table thead th {
