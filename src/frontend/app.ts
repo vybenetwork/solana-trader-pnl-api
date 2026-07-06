@@ -1191,6 +1191,49 @@ function walletPieCountUnitWord(pieTitle: string): string {
   return t.includes('position') ? 'positions' : 'trades';
 }
 
+/** Legend cards to render — always includes open/closed or winning/losing pairs even at 0. */
+function walletPieLegendDisplaySlices(title: string, slices: WalletPieSlice[]): WalletPieSlice[] {
+  const all = slices.map((slice) => ({ ...slice, value: Math.max(0, Number(slice.value) || 0) }));
+  const t = title.toLowerCase();
+  const byLabel = (needle: string) =>
+    all.find((slice) => slice.label.toLowerCase().includes(needle));
+
+  if (t.includes('winning') && t.includes('losing')) {
+    return [
+      byLabel('winning') ?? {
+        label: 'Winning Trades',
+        value: 0,
+        color: tradeScaleBarGradientPair(0),
+      },
+      byLabel('losing') ?? {
+        label: 'Losing Trades',
+        value: 0,
+        color: VOLUME_PNL_PIE_NONPOSITIVE_FILL,
+      },
+    ];
+  }
+
+  if (t.includes('open') && t.includes('closed') && t.includes('position')) {
+    const rows: WalletPieSlice[] = [
+      byLabel('open') ?? {
+        label: 'Open Positions',
+        value: 0,
+        color: { dark: '#475569', light: '#94a3b8' },
+      },
+      byLabel('closed') ?? {
+        label: 'Closed Positions',
+        value: 0,
+        color: { dark: '#1d4ed8', light: '#93c5fd' },
+      },
+    ];
+    const other = byLabel('other');
+    if (other && other.value > 0) rows.push(other);
+    return rows;
+  }
+
+  return all.filter((slice) => slice.value > 0);
+}
+
 /** Same normalization as {@link renderWalletPieCard} conic gradient slices. */
 function normalizedWalletPieSlices(slices: WalletPieSlice[]): {
   pctSlices: number[];
@@ -1307,38 +1350,49 @@ function walletPieLegendTierCardHtml(opts: {
 }
 
 function renderWalletPieCard(title: string, slices: WalletPieSlice[]): string {
-  const normalized = slices
-    .map((slice) => ({ ...slice, value: Math.max(0, Number(slice.value) || 0) }))
-    .filter((slice) => slice.value > 0);
-  const total = normalized.reduce((sum, slice) => sum + slice.value, 0);
-  if (total <= 0) {
-    const dash = '—';
-    const dashEsc = escapeHtmlText(dash);
-    const t = title.toLowerCase();
-    const isWinLose = t.includes('winning') || t.includes('losing');
-    const isOpenClosed = t.includes('open') && t.includes('closed') && t.includes('position');
-    const neutralRing = '#27272a';
-    const neutralAccent = '#52525b';
-    const neutralSwatch = '#52525b';
-    const emptyBg = buildPieGradientWithGaps([1], [neutralRing]);
-    const legendRows = isWinLose || isOpenClosed ? 2 : 3;
-    const showAvgPh = walletPieLegendUsesAvgRow(title);
-    const pctPh = `<span class="token-tier-metric__muted">${dashEsc}</span>`;
-    const countPh = `<span class="token-tier-metric__muted">${dashEsc}</span>`;
-    const avgRowPh = showAvgPh
-      ? { bodyHtml: `<span class="token-tier-metric__muted">${dashEsc}</span>`, iconTone: 'neutral' as const, iconChar: '' }
-      : null;
-    const legendHtml = Array.from({ length: legendRows }, () =>
-      walletPieLegendTierCardHtml({
-        accent: neutralAccent,
-        swatchBg: neutralSwatch,
-        titleEscaped: dashEsc,
-        pctBodyHtml: pctPh,
-        countBodyHtml: countPh,
-        avgRow: avgRowPh,
-        placeholder: true,
+  const allSlices = slices.map((slice) => ({ ...slice, value: Math.max(0, Number(slice.value) || 0) }));
+  const positiveSlices = allSlices.filter((slice) => slice.value > 0);
+  const total = positiveSlices.reduce((sum, slice) => sum + slice.value, 0);
+  const unitWord = walletPieCountUnitWord(title);
+  const showAvg = walletPieLegendUsesAvgRow(title);
+
+  const buildLegendHtml = (legendSlices: WalletPieSlice[], pieTotal: number, placeholder: boolean): string =>
+    legendSlices
+      .map((slice) => {
+        const pct = pieTotal > 0 ? (slice.value / pieTotal) * 100 : 0;
+        const accent = pieSliceAccentSolid(slice.color);
+        const swatchBg = pieSliceLegendBackground(slice.color);
+        const pctBodyHtml = placeholder
+          ? `<span class="token-tier-metric__muted">${escapeHtmlText('—')}</span>`
+          : `<span class="token-tier-metric__slice-pct">${formatPctSmart(pct)}</span><span class="token-tier-metric__muted"> share</span>`;
+        const countBodyHtml = placeholder
+          ? `<span class="token-tier-metric__muted">${escapeHtmlText('—')}</span>`
+          : `<span class="token-tier-metric__emph">${formatIntFull(slice.value)}</span><span class="token-tier-metric__muted"> ${unitWord}</span>`;
+        const avgRow = showAvg
+          ? placeholder
+            ? {
+                bodyHtml: `<span class="token-tier-metric__muted">${escapeHtmlText('—')}</span>`,
+                iconTone: 'neutral' as const,
+                iconChar: '',
+              }
+            : buildWalletPieAvgGainRow(slice.avgGainMult)
+          : null;
+        return walletPieLegendTierCardHtml({
+          accent: placeholder ? '#52525b' : accent,
+          swatchBg: placeholder ? '#52525b' : swatchBg,
+          titleEscaped: escapeHtmlText(slice.label),
+          pctBodyHtml,
+          countBodyHtml,
+          avgRow,
+          placeholder,
+        });
       })
-    ).join('');
+      .join('');
+
+  if (total <= 0) {
+    const neutralRing = '#27272a';
+    const emptyBg = buildPieGradientWithGaps([1], [neutralRing]);
+    const legendHtml = buildLegendHtml(walletPieLegendDisplaySlices(title, allSlices), 0, true);
     return `<section class="token-stats-group wallet-pnl-card wallet-pnl-card--pie">
       <h3 class="token-stats-group-title"><span>${title}</span></h3>
       <div class="wallet-pnl-pie-wrap">
@@ -1347,28 +1401,9 @@ function renderWalletPieCard(title: string, slices: WalletPieSlice[]): string {
       </div>
     </section>`;
   }
-  const pctSlices = normalized.map((slice) => (slice.value / total) * 100);
-  const pieGradient = buildPieGradientWithGaps(pctSlices, normalized.map((slice) => slice.color));
-  const unitWord = walletPieCountUnitWord(title);
-  const showAvg = walletPieLegendUsesAvgRow(title);
-  const legendHtml = normalized
-    .map((slice) => {
-      const pct = (slice.value / total) * 100;
-      const accent = pieSliceAccentSolid(slice.color);
-      const swatchBg = pieSliceLegendBackground(slice.color);
-      const pctBodyHtml = `<span class="token-tier-metric__slice-pct">${formatPctSmart(pct)}</span><span class="token-tier-metric__muted"> share</span>`;
-      const countBodyHtml = `<span class="token-tier-metric__emph">${formatIntFull(slice.value)}</span><span class="token-tier-metric__muted"> ${unitWord}</span>`;
-      const avgRow = showAvg ? buildWalletPieAvgGainRow(slice.avgGainMult) : null;
-      return walletPieLegendTierCardHtml({
-        accent,
-        swatchBg,
-        titleEscaped: escapeHtmlText(slice.label),
-        pctBodyHtml,
-        countBodyHtml,
-        avgRow,
-      });
-    })
-    .join('');
+  const pctSlices = positiveSlices.map((slice) => (slice.value / total) * 100);
+  const pieGradient = buildPieGradientWithGaps(pctSlices, positiveSlices.map((slice) => slice.color));
+  const legendHtml = buildLegendHtml(walletPieLegendDisplaySlices(title, allSlices), total, false);
   return `<section class="token-stats-group wallet-pnl-card wallet-pnl-card--pie">
     <h3 class="token-stats-group-title"><span>${title}</span></h3>
     <div class="wallet-pnl-pie-wrap">
