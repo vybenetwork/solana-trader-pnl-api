@@ -331,4 +331,5 @@ Promise.all([fetchWalletPnl(owner), fetchRelatedWallets(owner)])
 
 ## Support
 
+- **Telegram:** [Vybe community](https://t.me/vybenetwork)
 - **Support ticket:** [Submit a ticket via vybenetwork.xyz](https://vybenetwork.com)
