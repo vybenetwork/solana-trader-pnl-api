@@ -7,7 +7,6 @@
 [![Wallet PnL guide](https://img.shields.io/badge/Guides-Fetch%20wallet%20PnLs-3b82f6?style=for-the-badge&logo=gitbook&logoColor=white)](https://docs.vybenetwork.com/docs/fetch-wallet-pnls)
 [![Wallet PnL API](https://img.shields.io/badge/Endpoint-Wallet%20PnL-6366f1?style=for-the-badge&logo=swagger&logoColor=white)](https://docs.vybenetwork.com/reference/get_wallet_pnl_v4)
 [![X](https://img.shields.io/badge/X-Vybe__Network-000000?style=for-the-badge&logo=x)](https://x.com/Vybe_Network)
-[![Telegram](https://img.shields.io/badge/Telegram-VybeNetwork-26A5E4?style=for-the-badge&logo=telegram)](https://t.me/VybeNetwork_Official)
 </p>
 
 **Solana Trader PnL API:** This repository demonstrates how to use the Vybe Solana trader PnL APIs to fetch, explore, and analyze **per-wallet profit and loss (PnL)** together with **related wallets** ranked by realized PnL, including trades, program labels, and token metadata for SPL and Token-2022 activity. It ships as a production-ready Node.js backend and browser UI so you can search wallets (address or partial name via `ilikeFilter`), load wallet-scoped PnL, and browse the related-wallets leaderboard with the same parameters you would send to Vybe. Use this project as a reference implementation or starter kit for building data products such as wallet analytics dashboards, PnL leaderboards, related-wallet discovery, and more.
@@ -20,7 +19,6 @@ Try the live demo: https://solana-trader-pnl-api.vybenetwork.com
   <img src="screenshots/wallet-pnl-api-profit-and-loss-solana.png" alt="Wallet PnL API Profit and Loss" width="360" style="min-width:360px;max-width:360px;margin-right:10px;" />
   <img src="screenshots/solana-wallet-pnl-historical-data-api.png" alt="Solana Wallet PnL Historical Data API" width="272" style="min-width:272px;max-width:272px" />
 </p>
-
 
 ---
 
@@ -333,5 +331,4 @@ Promise.all([fetchWalletPnl(owner), fetchRelatedWallets(owner)])
 
 ## Support
 
-- **Telegram:** [Vybe community](https://t.me/vybenetwork)
 - **Support ticket:** [Submit a ticket via vybenetwork.xyz](https://vybenetwork.com)
