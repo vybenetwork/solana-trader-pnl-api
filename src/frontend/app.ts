@@ -1954,7 +1954,7 @@ function formatTopPnlCohortVolRowHtml(t: TokenData, cohortVolume24hUsd: number |
 function renderToken(t: TokenData, cohortVolume24hUsd?: number): void {
   const tokenLogoSrc = resolveTokenLogoSrc(t.logoUrl, t.mintAddress);
   tokenLogo.src = tokenLogoSrc;
-  tokenLogo.alt = t.symbol || '';
+  tokenLogo.alt = `${t.symbol || 'Token'} logo`;
   tokenLogo.style.display = tokenLogoSrc ? 'block' : 'none';
   tokenSymbol.textContent = t.symbol || '—';
   const nameTrim = (t.name || '').trim();
