@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://solana-trader-pnl-api.vybenetwork.com/sitemap.xml
