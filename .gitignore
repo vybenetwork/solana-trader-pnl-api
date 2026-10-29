@@ -12,3 +12,4 @@ scripts/
 # Persistent caches (read/write at request time)
 data/
 dist/
+.env.backup*
