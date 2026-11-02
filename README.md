@@ -2,7 +2,7 @@
 
 <p align="center">
 
-[![Demo](https://img.shields.io/badge/Demo-Solana%20Trader%20PnL%20API%20live%20app-c2410c?style=for-the-badge&logo=googlechrome&logoColor=white)](https://solana-trader-pnl-api.vybenetwork.com)
+[![Demo](https://img.shields.io/badge/Demo-Solana%20Trader%20PnL%20API%20live%20app-c2410c?style=for-the-badge&logo=googlechrome&logoColor=white)](https://solana-trader-pnl-api.vybenetwork.com?utm_source=trader-pnl-api-readme&utm_medium=referral)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-5b21b6?style=for-the-badge&logo=github&logoColor=white)](https://github.com/vybenetwork/solana-trader-pnl-api)
 [![Wallet PnL guide](https://img.shields.io/badge/Guides-Fetch%20wallet%20PnLs-3b82f6?style=for-the-badge&logo=gitbook&logoColor=white)](https://docs.vybenetwork.com/docs/fetch-wallet-pnls)
 [![Wallet PnL API](https://img.shields.io/badge/Endpoint-Wallet%20PnL-6366f1?style=for-the-badge&logo=swagger&logoColor=white)](https://docs.vybenetwork.com/reference/get_wallet_pnl_v4)
@@ -12,7 +12,7 @@
 
 **Solana Trader PnL API:** This repository demonstrates how to use the Vybe Solana trader PnL APIs to fetch, explore, and analyze **per-wallet profit and loss (PnL)** together with **related wallets** ranked by realized PnL, including trades, program labels, and token metadata for SPL and Token-2022 activity. It ships as a production-ready Node.js backend and browser UI so you can search wallets (address or partial name via `ilikeFilter`), load wallet-scoped PnL, and browse the related-wallets leaderboard with the same parameters you would send to Vybe. Use this project as a reference implementation or starter kit for building data products such as wallet analytics dashboards, PnL leaderboards, related-wallet discovery, and more.
 
-Try the live demo: https://solana-trader-pnl-api.vybenetwork.com
+Try the live demo: [`https://solana-trader-pnl-api.vybenetwork.com`](https://solana-trader-pnl-api.vybenetwork.com?utm_source=trader-pnl-api-readme&utm_medium=referral)
 
 ![Solana wallet PnL and related wallets demo](screenshots/solana-wallet-pnl-profit-and-loss-api.png)
 
@@ -23,7 +23,7 @@ Try the live demo: https://solana-trader-pnl-api.vybenetwork.com
 
 ---
 
-**[Try the LIVE demo →](https://solana-trader-pnl-api.vybenetwork.com)**
+**[Try the LIVE demo →](https://solana-trader-pnl-api.vybenetwork.com?utm_source=trader-pnl-api-readme&utm_medium=referral)**
 
 **[Get your free Vybe API key →](https://vybe.fyi/api-pricing?utm_source=trader-pnl-api-readme&utm_medium=referral)**
 
