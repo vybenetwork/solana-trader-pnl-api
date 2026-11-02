@@ -60,7 +60,7 @@ Then open **http://localhost:3000**, enter a **wallet address or name** (mapped 
 | `TUNNEL`          | No       | Set to `1` to run behind a Cloudflare Tunnel                                | `1`                                       |
 | `TRADES_LOG`      | No       | Set to `1` to append `/api/trades` request lines to `trades-requests.log`   | `0`                                       |
 
-Get your API key at `https://vybe.fyi/api-pricing?utm_source=trader-pnl-api-readme&utm_medium=referral`.
+Get your API key at [`https://vybe.fyi/api-pricing`](https://vybe.fyi/api-pricing?utm_source=trader-pnl-api-readme&utm_medium=referral).
 
 ---
 
