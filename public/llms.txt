@@ -2,10 +2,28 @@
 
 > Analyze Solana wallet profit and loss with the Vybe Solana API: 1d, 7d and 30d windows, per-token PnL, related wallets by realized gains and export tools.
 
-Live demo of the Vybe Solana API. The linked docs pages are the Markdown versions.
+This is a free demo that showcases the Vybe PnL endpoints. Open it in the browser to test and demo them. Nothing to install. The linked docs pages are the Markdown versions.
+
+## What this demo shows
+Enter a wallet for its profit and loss, or a mint for the traders with the most realized PnL on that token. The wallet summary includes realized and unrealized results, plus volume, for the window you pick. The chart buckets PnL at daily, weekly, or monthly. Table windows are 1d, 7d, and 30d.
+
+- Wallet summary: realized and unrealized PnL for the wallet and window you pick.
+- PnL chart: a timeseries of that wallet's PnL at daily, weekly, or monthly.
+- Token leaderboard: traders ranked by realized PnL on the mint you enter.
+- Related wallets: other top traders returned alongside the wallet lookup.
+
+## Endpoints this demo calls
+- Trader PnL API: `GET /v4/wallets/{ownerAddress}/pnl`
+- Top Traders API: `GET /v4/wallets/top-traders`
+- Top PnL Traders API: `GET /v4/tokens/{mintAddress}/top-pnl-traders`
+- Historical Trades API: `GET /v4/trades`
+- Token Details API: `GET /v4/tokens/{mintAddress}`
+- Labeled Programs: `GET /v4/programs/labeled-program-accounts`
+
+The demo page is free to use. Calling Trader PnL needs an API key on the Developer plan, the lowest paid tier. The Free plan does not include that endpoint.
 
 ## Demo
-- [Solana Trader PnL API](https://solana-trader-pnl-api.vybenetwork.com/): Analyze Solana wallet profit and loss with the Vybe Solana API: 1d, 7d and 30d windows, per-token PnL, related wallets by realized gains and export tools.
+- [Solana Trader PnL API](https://solana-trader-pnl-api.vybenetwork.com/): Free browser demo of the PnL endpoints. Look up a wallet or a mint and test the chart.
 
 ## Docs
 - [Fetch Trader PnL Guide](https://docs.vybenetwork.com/docs/fetch-wallet-pnls.md)
